@@ -1572,7 +1572,7 @@ function attentionHTML(items){
       }).join('');
       const pSt = btnStateAttrs('promote:' + it.lab, 'Move to core');
       const rSt = btnStateAttrs('check:' + it.labRel + ':antigravity', 'Verify on bench');
-      const oSt = btnStateAttrs('check:' + it.labRel + ':odie', 'Ask Builder');
+      const oSt = btnStateAttrs('check:' + it.labRel + ':builder', 'Ask Builder');
       const lSt = btnStateAttrs('dismiss:' + it.lab, 'Later');
       return `<div class="card">
         <div class="card-top">
@@ -1614,7 +1614,7 @@ function attentionHTML(items){
       const dotCls = a?.state==='answered' ? 'green' : a?.state==='working' ? 'sky' : a?.state==='failed' ? 'red' : 'amber';
       const statusTxt = a?.state==='working' ? `<span class="working">working</span>` : a?.state==='answered' ? `<span style="color:var(--green);font-size:12px">answered</span>` : a?.state==='failed' ? `<span style="color:var(--red);font-size:12px">stuck</span>` : '';
       const runSt = btnStateAttrs('route:' + f.id + ':antigravity', a ? 'Re-run check' : 'Run check');
-      const odieSt = btnStateAttrs('route:' + f.id + ':odie', 'Hand to Builder');
+      const builderSt = btnStateAttrs('route:' + f.id + ':builder', 'Hand to Builder');
       const doneSt = btnStateAttrs('done:' + f.id, 'Done');
       return `<div class="card">
         <div class="card-top">
@@ -1628,7 +1628,7 @@ function attentionHTML(items){
         ${a?.answer?`<div class="answer md">${md(a.answer)}</div>`:''}
         <div class="actions">
           ${state.board.agy && a?.state!=='working' ? `<button class="btn ${target==='antigravity'&&!a?'primary':''}${runSt.cls}"${runSt.dis} onclick="routeFlag('${esc(f.id)}','antigravity',true, this)">${runSt.html}</button>`:''}
-          ${target!=='builder' ? `<button class="btn${odieSt.cls}"${odieSt.dis} onclick="routeFlag('${esc(f.id)}','builder',false, this)">${odieSt.html}</button>`:''}
+          ${target!=='builder' ? `<button class="btn${builderSt.cls}"${builderSt.dis} onclick="routeFlag('${esc(f.id)}','builder',false, this)">${builderSt.html}</button>`:''}
           <button class="btn ghost${doneSt.cls}"${doneSt.dis} onclick="doneFlag('${esc(f.id)}', this)">${doneSt.html}</button>
           <button class="btn ghost later-btn" style="margin-left:auto" onclick="copyHandoff('${esc(f.id)}')">Copy</button>
         </div>
@@ -1636,7 +1636,7 @@ function attentionHTML(items){
     }
     if (it.type==='diverged') {
       const fSt = btnStateAttrs('qflag:' + it.labRel + ':antigravity', 'Flag for Breaker');
-      const oSt = btnStateAttrs('qflag:' + it.labRel + ':odie', 'Hand to Builder');
+      const oSt = btnStateAttrs('qflag:' + it.labRel + ':builder', 'Hand to Builder');
       return `<div class="card warn-card">
         <div class="card-top"><span class="dot red"></span><span class="card-title">${esc(it.lab)}</span><span class="card-sub">lab and core split apart</span></div>
         <div class="actions">
@@ -1646,7 +1646,7 @@ function attentionHTML(items){
     }
     if (it.type==='core-edited') {
       const fSt = btnStateAttrs('qflag:' + it.rel + ':antigravity', 'Flag for Breaker');
-      const oSt = btnStateAttrs('qflag:' + it.rel + ':odie', 'Hand to Builder');
+      const oSt = btnStateAttrs('qflag:' + it.rel + ':builder', 'Hand to Builder');
       return `<div class="card warn-card">
         <div class="card-top"><span class="dot red"></span><span class="card-title">${esc(it.rel)}</span><span class="card-sub">${it.changes} hand edit(s) inside core</span></div>
         <div class="actions">

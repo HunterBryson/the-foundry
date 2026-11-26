@@ -99,7 +99,7 @@ export function getFlags({ includeDone = false } = {}) {
 }
 export function getFlag(id) {
   const f = readJSON(path.join(FLAGS_DIR, `${id}.json`), null);
-  if (f && !f.for) f.for = 'rivet';
+  if (f && !f.for) f.for = CONFIG.crew[0]?.id || 'builder';
   return f;
 }
 export function saveFlag(flag) {

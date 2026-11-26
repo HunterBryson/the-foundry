@@ -32,7 +32,7 @@ test('Zero-leak privacy & voice guardrail audit across entire repo', () => {
     [/sk-ant-[a-z0-9-]{12,}/i, 'Anthropic key'],
     [/ghp_[a-z0-9]{20,}|github_pat_[a-z0-9_]{20,}/i, 'GitHub token'],
     [/\bpartner(s|ship)?\b/i, 'creepy partner wording'],
-    [/\b(Odie|Juno|Rivet|Billy)\b/, 'internal family agent name'],
+    [/\b(Odie|Juno|Rivet|Billy)\b/i, 'internal family agent name'],
     [/Built by Hunter/i, 'third-person sign-off'],
   ];
 
