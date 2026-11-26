@@ -1,0 +1,6 @@
+{
+  "name": "the-foundry",
+  "tokens": {
+    "FOUNDRY_CLI": "${ROOT}/app/foundry.mjs"
+  }
+}

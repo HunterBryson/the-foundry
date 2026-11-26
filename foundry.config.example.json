@@ -1,0 +1,70 @@
+{
+  "title": "The Foundry",
+  "shortName": "Foundry",
+  "home": "~/Foundry-Workshop",
+  "port": 7988,
+  "host": "127.0.0.1",
+  "benchPorts": [
+    7991,
+    7992,
+    7993
+  ],
+  "human": {
+    "id": "you",
+    "name": "You"
+  },
+  "pairs": {},
+  "githubOwner": "",
+  "surfaces": {
+    "floorUrl": "http://127.0.0.1:7960",
+    "homebaseUrl": "http://127.0.0.1:7940",
+    "denUrl": "http://127.0.0.1:7950",
+    "scheduleUrl": "http://127.0.0.1:7968"
+  },
+  "crew": [
+    {
+      "id": "builder",
+      "name": "Builder",
+      "role": "Lab Maker (Claude or Antigravity)",
+      "color": "#f5b44c",
+      "faceUrl": "/hub/faces/builder.svg",
+      "surfaces": [
+        "den",
+        "floor"
+      ]
+    },
+    {
+      "id": "breaker",
+      "name": "Breaker",
+      "role": "Tester & Second Eye",
+      "color": "#3dd68c",
+      "faceUrl": "/hub/faces/breaker.svg",
+      "surfaces": [
+        "hopper",
+        "floor"
+      ]
+    },
+    {
+      "id": "lead",
+      "name": "Lead",
+      "role": "Caretaker & Room Lead",
+      "color": "#b8f24b",
+      "faceUrl": "/hub/faces/lead.svg",
+      "surfaces": [
+        "hopper",
+        "floor"
+      ]
+    },
+    {
+      "id": "planner",
+      "name": "Planner",
+      "role": "Scope & Schedule",
+      "color": "#a882ff",
+      "faceUrl": "/hub/faces/planner.svg",
+      "surfaces": [
+        "schedule",
+        "floor"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Foundry · Crew Dock",
+  "short_name": "Crew Dock",
+  "description": "One-thumb dark mobile radar and Hopper drop hub for The Foundry",
+  "start_url": "/hub",
+  "display": "standalone",
+  "background_color": "#08080c",
+  "theme_color": "#08080c",
+  "icons": [
+    {
+      "src": "/hub/faces/lead.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,2554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#09090b">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Foundry</title>
+<style>
+  :root{
+    --bg:#09090b; --rail:#0e0e12; --card:#131318; --card2:#191920; --hover:#1d1d25; --sel:#23232d;
+    --line:#22222a; --line2:#30303b;
+    --text:#f0f0f4; --text2:#b8b8c4; --muted:#7f7f8f; --dim:#575764;
+    --green:#5ec48e; --amber:#e5a956; --violet:#a78bfa; --sky:#74b3f0; --red:#eb7373;
+    --treeW: 390px;
+    --navH: 64px;
+    --topH: 54px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+  button{font:inherit;color:inherit;touch-action:manipulation}
+  ::selection{background:#2d2d3b}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#24242b;border-radius:8px}
+  ::-webkit-scrollbar-thumb:hover{background:#32323c}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  /* MOBILE CHROME (hidden on desktop) */
+  .m-bar,.m-nav{display:none}
+
+  .app{display:grid;grid-template-columns:minmax(0,1fr) 1px var(--treeW);height:100vh;height:100dvh}
+  .grip{cursor:col-resize;background:var(--line);position:relative}
+  .grip::after{content:'';position:absolute;inset:0 -3px}
+  .grip:hover{background:#3f3f4a}
+
+  /* LEFT PANE */
+  .left{overflow:auto;padding:28px 34px 72px;max-width:980px;-webkit-overflow-scrolling:touch}
+  .sec{margin:0 0 30px}
+  .sec-h{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+  .sec-t{font-size:13.5px;font-weight:600;color:var(--text);letter-spacing:.1px}
+  .sec-n{font-size:12px;color:var(--muted);background:#18181e;border:1px solid var(--line2);border-radius:10px;padding:1px 8px;font-weight:600;font-variant-numeric:tabular-nums}
+  .sec-n.hot{background:#2b2112;border-color:#5a4320;color:var(--amber)}
+  .sec-n.ok{background:#12251c;border-color:#264f3c;color:var(--green)}
+  .sec-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .tlink{border:1px solid var(--line2);background:#16161b;color:var(--text2);cursor:pointer;font-size:12px;padding:5px 11px;border-radius:7px;transition:background .12s,border-color .12s,color .12s,transform .08s}
+  .tlink:hover{background:#202028;border-color:#3d3d4a;color:#ffffff}
+  .tlink:active{transform:scale(.97)}
+  .tlink.on{background:#24242e;border-color:#454554;color:#ffffff}
+  .quiet{color:var(--dim);font-size:13.5px;padding:4px 0}
+
+  /* GLANCE STATUS HERO (visible on phone Needs tab; compact on desktop when all clear) */
+  .glance{background:linear-gradient(180deg,#14161c 0%,#101116 100%);border:1px solid var(--line2);border-radius:14px;padding:16px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 26px rgba(0,0,0,.35)}
+  .glance.clear{border-color:#1f3d2f;background:linear-gradient(180deg,#111916 0%,#0d1210 100%)}
+  .glance.needs{border-color:#4d3a1c;background:linear-gradient(180deg,#1b160f 0%,#13100c 100%)}
+  .glance-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:none;font-size:17px;font-weight:700}
+  .glance.clear .glance-ico{background:#163024;color:var(--green);border:1px solid #27543f}
+  .glance.needs .glance-ico{background:#2f2311;color:var(--amber);border:1px solid #5c441e}
+  .glance-body{min-width:0;flex:1}
+  .glance-title{font-size:16px;font-weight:650;color:#ffffff;letter-spacing:-.15px;line-height:1.25}
+  .glance-sub{font-size:13px;color:var(--text2);margin-top:3px;line-height:1.4}
+  .glance-links{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+
+  /* CARDS — dark obsidian layers */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:12px;transition:border-color .15s,background .15s,opacity .25s}
+  .card.handled{opacity:.35;pointer-events:none}
+  .card:hover{border-color:var(--line2)}
+  .card.warn-card{border-color:#442628;background:#161012}
+  .card-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .dot.green{background:var(--green)} .dot.amber{background:var(--amber)} .dot.red{background:var(--red)} .dot.violet{background:var(--violet)} .dot.sky{background:var(--sky)} .dot.dim{background:var(--dim)}
+  .card-title{font-size:15px;font-weight:600;color:var(--text)}
+  .card-sub{font-size:12.5px;color:var(--muted)}
+  .card-right{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .route{font-size:12px;color:var(--text2);background:var(--card2);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+  .route .to-builder{color:var(--green)} .route .to-antigravity,.route .to-breaker{color:var(--sky)} .route .to-lead{color:var(--violet)} .route .to-you{color:var(--amber)}
+
+  .summary{margin:10px 0 0;color:var(--text2);font-size:13.5px;line-height:1.55;word-break:break-word}
+  .summary-item{margin:4px 0}
+  .files{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .fchip{font-family:"Cascadia Code",Consolas,monospace;font-size:11.5px;color:var(--muted);background:#0d0d11;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fchip:hover{color:var(--text);border-color:var(--line2)}
+  .fchip .op{margin-right:4px;font-weight:600}
+  .fchip .op.A{color:var(--green)} .fchip .op.M{color:var(--amber)} .fchip .op.D{color:var(--red)}
+
+  .answer{margin-top:12px;background:#0e0e13;border:1px solid var(--line);border-radius:9px;padding:12px 14px;font-size:13.5px;color:var(--text2)}
+  .working{color:var(--sky);font-size:12px}
+  .working::after{content:'';display:inline-block;width:6px;height:6px;margin-left:6px;border-radius:50%;background:var(--sky);animation:pulse 1.2s infinite}
+  @keyframes pulse{50%{opacity:.2}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* BUTTONS WITH VISIBLE TAP / BUSY / DONE STATES */
+  .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}
+  .btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#1a1a22;border:1px solid #2e2e3a;border-radius:8px;padding:6px 13px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);transition:background .12s,border-color .12s,color .12s,transform .08s,box-shadow .12s;user-select:none}
+  .btn:hover:not(:disabled){background:#252530;border-color:#444454}
+  .btn:active:not(:disabled){transform:scale(.97);background:#2b2b38}
+  .btn.primary{background:#17392b;border-color:#2f8560;color:#c9f2dc;font-weight:650}
+  .btn.primary:hover:not(:disabled){background:#1e4836;border-color:#3a9d73}
+  .btn.primary:active:not(:disabled){background:#123023;transform:scale(.97)}
+  .btn.ghost{background:#14141a;border-color:#262630;color:var(--text2)}
+  .btn.ghost:hover:not(:disabled){color:#ffffff;background:#1f1f28;border-color:#3a3a48}
+  .btn.icon-close{background:#16161c;border:1px solid var(--line);color:var(--muted);width:32px;height:32px;padding:0;border-radius:8px}
+  .btn.icon-close:hover{background:#23232c;border-color:var(--line2);color:#ffffff}
+  .btn.danger{color:#f59898;border-color:#4a2528;background:#201214;font-weight:600}
+  .btn.danger:hover:not(:disabled){background:#2d171a;border-color:#683338;color:#ffb4b4}
+  .btn.danger-solid{background:#b9383c;border-color:#d44b4f;color:#ffffff;font-weight:650}
+  .btn.danger-solid:hover:not(:disabled){background:#cf4044}
+  .btn:disabled{opacity:.65;cursor:default}
+  .btn.is-busy{border-color:#3e587c;background:#152030;color:#b8d7ff}
+  .btn.primary.is-busy{background:#152030;color:#b8d7ff;border-color:#3e587c}
+  .btn.is-done{border-color:#2b6649 !important;background:#132b20 !important;color:#8ee6b6 !important}
+  .btn.is-err{border-color:#723034 !important;background:#2a1416 !important;color:#ffb4b4 !important}
+  .spin{width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;flex:none}
+
+  /* ISOLATED ROLL BACK DANGER ZONE (prevents slipped-thumb taps) */
+  .danger-zone{margin-top:24px;padding:15px 16px;border-radius:11px;border:1px solid #3c2225;background:#140d0f;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .dz-text{min-width:0;flex:1}
+  .dz-title{font-size:13px;font-weight:600;color:#f0a2a2}
+  .dz-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .pclick{font-family:"Cascadia Code",Consolas,monospace;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:1px dotted #3a3a45;word-break:break-all}
+  .pclick:hover{color:var(--text);border-bottom-color:var(--text)}
+
+  /* CURRENT FOCUS */
+  .focus-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pin-chip{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 9px 7px 12px;cursor:pointer;font-size:13px;max-width:100%}
+  .pin-chip:hover{border-color:var(--line2);background:var(--card2)}
+  .pin-chip .pn{font-family:"Cascadia Code",Consolas,monospace;font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pin-chip .px{border:0;background:transparent;color:var(--dim);cursor:pointer;border-radius:5px;width:22px;height:22px;line-height:20px;flex:none}
+  .pin-chip .px:hover{background:#26262f;color:var(--text)}
+
+  /* PROJECTS (FOOTING / PROGRESS) */
+  .standings{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .st-row{display:grid;grid-template-columns:14px 150px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s}
+  .st-row:last-child{border-bottom:0}
+  .st-row:hover{background:var(--card2)}
+  .st-row:active{background:var(--sel)}
+  .st-name{font-weight:600;font-size:13.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st-msg{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st-meta{font-size:12px;color:var(--dim);white-space:nowrap;display:flex;align-items:center;gap:10px}
+  .st-state{font-size:11.5px;font-weight:600;color:var(--text2);background:#1b1b22;border:1px solid var(--line2);padding:2px 8px;border-radius:999px}
+  .st-state.ok{color:var(--green);background:#11231a;border-color:#224735}
+  .st-state.ahead{color:var(--amber);background:#261d10;border-color:#4f3b1d}
+  .st-state.err{color:var(--red);background:#281416;border-color:#54262a}
+
+  /* PROGRESS SUMMARY STRIP */
+  .prog-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .ppill{font-size:12px;color:var(--text2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 11px;display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+
+  /* REPO-STYLE PATH HEADER */
+  .repo-hdr{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .crumbs{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-family:"Cascadia Code",Consolas,monospace;font-size:11.5px;color:var(--muted)}
+  .crumb-btn{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:2px 5px;border-radius:5px;font:inherit}
+  .crumb-btn:hover{background:#202028;color:var(--text)}
+  .crumb-sep{color:var(--dim)}
+  .repo-title-row{display:flex;align-items:center;gap:10px}
+  .repo-title{font-size:19px;font-weight:650;color:#ffffff;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* INSPECTOR */
+  .inspector{background:var(--card);border:1px solid var(--line2);border-radius:13px;padding:18px 20px;margin-bottom:24px}
+  .ins-head{display:flex;align-items:flex-start;gap:12px}
+  .ins-stat{margin-top:8px;font-size:13px;color:var(--text2);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .preview{margin-top:14px;max-height:460px;overflow:auto;background:#0b0b0e;border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .preview pre{margin:0;font:12.5px/1.55 "Cascadia Code",Consolas,monospace;white-space:pre-wrap;word-break:break-word;color:#c9c9d2}
+  .preview img{max-width:100%;border-radius:6px}
+  .md h1,.md h2,.md h3{font-size:14.5px;color:var(--text);margin:12px 0 6px}
+  .md p{margin:6px 0} .md ul{margin:6px 0;padding-left:20px}
+  .md code{font-family:"Cascadia Code",Consolas,monospace;font-size:12px;background:#1a1a21;padding:1px 5px;border-radius:4px}
+  .md pre code{display:block;padding:10px;white-space:pre-wrap}
+  .md a{color:var(--sky)}
+
+  /* FULL-PANE FILE VIEW */
+  .file-view{display:flex;flex-direction:column;min-height:calc(100vh - 56px)}
+  .fv-top{padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px;display:flex;flex-direction:column;gap:12px}
+  .fv-row1{display:flex;align-items:flex-start;gap:12px}
+  .fv-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .fv-body{flex:1;font-size:14.5px;line-height:1.68;color:#d6d6de}
+  .fv-body pre{margin:0;font:13px/1.6 "Cascadia Code",Consolas,monospace;white-space:pre-wrap;word-break:break-word;color:#d2d2dc;background:#0e0e11;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .fv-body img{max-width:100%;border-radius:8px;border:1px solid var(--line)}
+  .fv-md{max-width:760px}
+  .fv-md h1{font-size:21px;font-weight:600;color:#ffffff;margin:0 0 14px;letter-spacing:-.2px}
+  .fv-md h2{font-size:16.5px;font-weight:600;color:var(--text);margin:22px 0 8px}
+  .fv-md h3{font-size:14.5px;font-weight:600;color:var(--text2);margin:16px 0 6px}
+  .fv-md p{margin:10px 0}
+  .fv-md ul,.fv-md ol{margin:10px 0;padding-left:22px}
+  .fv-md li{margin:4px 0}
+  .fv-md blockquote{margin:12px 0;padding:4px 14px;border-left:2px solid #383844;color:var(--muted)}
+  .fv-md hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+  .fv-md code{font-family:"Cascadia Code",Consolas,monospace;font-size:12.5px;background:#18181f;padding:2px 6px;border-radius:4px;color:#e2e2ea}
+  .fv-md pre{margin:12px 0}
+  .fv-md pre code{background:transparent;padding:0;font-size:12.5px}
+  .fv-md a{color:var(--sky);text-decoration:none} .fv-md a:hover{text-decoration:underline}
+
+  /* FLAG / NOTE COMPOSER */
+  .composer{margin-top:14px;background:#0e0e13;border:1px solid var(--line2);border-radius:11px;padding:14px}
+  .composer textarea,.note-box input{width:100%;background:#14141a;color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:10px 12px;font:inherit;outline:none}
+  .composer textarea{min-height:68px;resize:vertical}
+  .composer textarea:focus,.note-box input:focus{border-color:#536685}
+  .crow{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .clbl{font-size:11.5px;color:var(--dim);margin-right:4px}
+  .seg{border:1px solid var(--line2);background:#14141a;border-radius:7px;padding:5px 11px;cursor:pointer;font-size:12.5px;color:var(--muted)}
+  .seg:hover{color:var(--text);border-color:#444452}
+  .seg.on{background:#2a2a35;color:#f0f0f4;border-color:#55556a;font-weight:600}
+  .note-box{display:flex;gap:8px;margin-bottom:14px}
+
+  /* ACTIVITY LOG */
+  .log-list{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px}
+  .act{display:grid;grid-template-columns:46px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #1b1b22;font-size:13.5px;align-items:baseline}
+  .act:last-child{border-bottom:0}
+  .act .t{color:var(--dim);font-size:11.5px;font-variant-numeric:tabular-nums}
+  .act .who{font-weight:600;color:var(--text);margin-right:6px;font-size:12.5px}
+  .act .kind{display:inline-block;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.35px;padding:1px 6px;border-radius:4px;margin-right:6px;background:#1c1c24;color:var(--muted);border:1px solid var(--line)}
+  .act .kind.k-promote{color:var(--green);background:#11231a;border-color:#224735}
+  .act .kind.k-rollback,.act .kind.k-backup-error,.act .kind.k-block{color:var(--red);background:#281416;border-color:#54262a}
+  .act .kind.k-flag{color:var(--amber);background:#261d10;border-color:#4f3b1d}
+  .act .kind.k-match{color:var(--sky);background:#122030;border-color:#254363}
+  .act .txt{color:var(--text2);line-height:1.45;word-break:break-word}
+  .act .apath{display:block;margin-top:3px;font-family:"Cascadia Code",Consolas,monospace;font-size:11px;color:var(--dim)}
+
+  /* RIGHT PANE: USAGE + FOLDER TREE */
+  .right{background:var(--rail);overflow:auto;padding:14px 0 40px;-webkit-overflow-scrolling:touch}
+  .rhead{padding:0 14px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #18181d;margin-bottom:8px}
+  .rhead b{font-size:13px;font-weight:600;color:var(--text2);letter-spacing:.2px}
+  .dock-pill{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:11.5px;font-weight:650;color:#efe6ff;background:linear-gradient(135deg,rgba(168,130,255,.2),rgba(244,114,182,.12));border:1px solid rgba(168,130,255,.44);border-radius:999px;padding:3px 10px;box-shadow:0 0 14px rgba(168,130,255,.16);transition:background .12s,border-color .12s,box-shadow .12s,transform .08s;white-space:nowrap}
+  .dock-pill:hover{background:linear-gradient(135deg,rgba(168,130,255,.28),rgba(244,114,182,.18));border-color:rgba(201,178,255,.65);box-shadow:0 0 18px rgba(168,130,255,.26);color:#fff}
+  .dock-pill:active{transform:scale(.96)}
+
+  .usage-box{padding:4px 14px 12px;border-bottom:1px solid #18181d;margin-bottom:8px}
+  .usage-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .u-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+  .u-head span{font-size:11px;font-weight:600;letter-spacing:.45px;text-transform:uppercase;color:var(--dim)}
+  .u-list{display:flex;flex-direction:column;gap:5px}
+  .u-item{border-radius:8px;transition:background .12s}
+  .u-row{display:grid;grid-template-columns:112px 1fr 38px;align-items:center;gap:10px;padding:6px 6px;border-radius:8px;cursor:pointer;user-select:none}
+  .u-row:hover{background:var(--hover)}
+  .u-name{font-size:12.5px;font-weight:500;color:#d6d6de;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .u-row.off .u-name{color:var(--muted)}
+  .u-track{height:7px;border-radius:999px;background:#191921;overflow:hidden;position:relative;box-shadow:inset 0 1px 2px #0006}
+  .u-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--c1),var(--c2));transition:width .35s ease}
+  .u-fill.glow{box-shadow:0 0 8px var(--cg)}
+  .u-fill.dim{opacity:.28}
+  .u-pct{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;color:var(--text)}
+  .u-pct.na{color:var(--dim);font-weight:500}
+  .u-det{padding:8px 10px 9px;margin:2px 2px 6px;background:#101015;border:1px solid #1f1f29;border-radius:8px;display:flex;flex-direction:column;gap:8px}
+  .u-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .u-col-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+  .u-lbl{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+  .u-val{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+  .u-val.na{color:var(--dim);font-weight:500;font-size:11.5px}
+  .u-sub{font-size:10.5px;color:var(--dim);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .u-note{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+
+  .preview-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #18181f}
+  .tree{user-select:none}
+  .node{display:flex;align-items:center;height:30px;padding-right:10px;cursor:pointer;position:relative;white-space:nowrap}
+  .node:hover{background:var(--hover)}
+  .node.sel{background:var(--sel)}
+  .node .chev{width:18px;flex:none;color:var(--dim);font-size:9px;text-align:center;transition:transform .12s}
+  .node .chev.open{transform:rotate(90deg)}
+  .node .ico{width:20px;flex:none;display:flex;align-items:center}
+  .node .name{overflow:hidden;text-overflow:ellipsis;font-size:13.5px;color:#d6d6de}
+  .node.sel .name{color:#ffffff}
+  .node .badges{margin-left:auto;display:flex;gap:6px;align-items:center;padding-left:8px;flex:none}
+  .ind{font-size:11px;color:var(--muted)}
+  .ind.up{color:var(--green)} .ind.chg{color:var(--sky)} .ind.flag{color:var(--amber);font-weight:600} .ind.pin{color:var(--violet)} .ind.split{color:var(--red)}
+  .node .hov{display:none;gap:2px;margin-left:4px}
+  .node:hover .hov{display:flex}
+  .node:hover .badges .hide-hov{display:none}
+  .hb{border:0;background:transparent;color:var(--muted);border-radius:6px;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s}
+  .hb:hover{background:#2b2b34;color:var(--text)}
+  .guide{position:absolute;top:0;bottom:0;border-left:1px solid #1b1b21}
+
+  /* HIGH-VISIBILITY FEEDBACK TOAST */
+  .toast{position:fixed;left:28px;bottom:22px;z-index:80;background:#171820;border:1px solid var(--line2);border-radius:11px;padding:11px 16px;max-width:480px;font-size:13.5px;font-weight:500;color:#f2f2f6;box-shadow:0 14px 36px rgba(0,0,0,.65);display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(10px) scale(.98);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
+  .toast.show{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
+  .toast .tico{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;background:#232430;color:var(--sky)}
+  .toast.ok{border-color:#2c664a;background:#11221a;color:#d6fae6}
+  .toast.ok .tico{background:#1d4a34;color:#7ef0b2}
+  .toast.err{border-color:#6d2d31;background:#261315;color:#ffd0d0}
+  .toast.err .tico{background:#4d1e22;color:#ff8a8a}
+
+  /* DARK CONFIRMATION SHEET (for safe Roll back) */
+  .modal-back{position:fixed;inset:0;z-index:90;background:rgba(4,4,7,.76);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-back.open{display:flex}
+  .modal-card{width:100%;max-width:420px;background:#131319;border:1px solid #3c262a;border-radius:16px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.75)}
+  .modal-kicker{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--red);margin-bottom:6px}
+  .modal-title{font-size:18px;font-weight:650;color:#ffffff;margin:0 0 8px}
+  .modal-body{font-size:14px;color:var(--text2);line-height:1.55;margin:0 0 22px}
+  .modal-actions{display:flex;gap:14px;justify-content:flex-end}
+
+  /* ===================== PHONE LAYOUT (Galaxy S24 Ultra ~412px, <= 860px) ===================== */
+  @media (max-width: 860px){
+    html,body{font-size:15px}
+    .desktop-only{display:none !important}
+
+    .m-bar{
+      display:flex;align-items:center;gap:10px;
+      position:fixed;top:0;left:0;right:0;z-index:50;
+      height:calc(var(--topH) + env(safe-area-inset-top));
+      padding:env(safe-area-inset-top) 14px 0;
+      background:rgba(9,9,11,.94);backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .m-brand{font-size:16px;font-weight:700;letter-spacing:-.2px;color:#ffffff;display:flex;align-items:center;gap:8px}
+    .m-live{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--green);background:#102219;border:1px solid #214534;border-radius:999px;padding:2px 9px}
+    .m-live.off{color:var(--amber);background:#261d10;border-color:#523e1d}
+    .m-live::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+    .m-bar-r{margin-left:auto;display:flex;align-items:center;gap:6px}
+    .m-bar-r .dock-pill{min-height:38px;padding:0 12px;font-size:12.5px}
+    .m-icon-btn{min-width:42px;height:42px;padding:0 11px;border-radius:10px;border:1px solid var(--line2);background:#14141a;color:var(--text2);display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer}
+    .m-icon-btn:active{transform:scale(.95);background:#22222c;color:#ffffff}
+
+    .app{display:block;height:100dvh}
+    .grip{display:none}
+    .left{
+      max-width:none;height:100dvh;
+      padding:calc(var(--topH) + env(safe-area-inset-top) + 14px) 14px calc(var(--navH) + env(safe-area-inset-bottom) + 28px);
+    }
+    .right{
+      display:none;height:100dvh;background:var(--bg);
+      padding:calc(var(--topH) + env(safe-area-inset-top) + 10px) 10px calc(var(--navH) + env(safe-area-inset-bottom) + 28px);
+    }
+    body.tab-files:not(.has-sel) .left{display:none}
+    body.tab-files:not(.has-sel) .right{display:block}
+    .right .rhead,.right .usage-box{display:none}
+
+    .sec{margin-bottom:24px}
+    .sec-t{font-size:14.5px}
+    .card{padding:16px;border-radius:14px;margin-bottom:14px}
+    .card-title{font-size:16px}
+    .card-sub{font-size:13px}
+    .summary{font-size:14.5px}
+
+    /* Thumb-sized actions with generous separation */
+    .actions{gap:10px;margin-top:16px}
+    .actions .btn{min-height:48px;padding:10px 15px;font-size:14.5px;border-radius:11px}
+    .actions .btn.primary{flex:1 1 100%;min-height:50px;font-size:15.5px}
+    .actions .btn:not(.primary){flex:1 1 calc(50% - 6px)}
+    .actions .btn.later-btn{flex:0 0 auto;min-width:96px;margin-left:0 !important}
+
+    .fv-actions .btn{min-height:46px;padding:9px 14px;font-size:14px;border-radius:10px}
+    .tlink{min-height:38px;padding:7px 12px;font-size:13px}
+    .seg{min-height:40px;padding:7px 13px;font-size:13.5px}
+
+    /* Extra-safe Roll back zone on phone */
+    .danger-zone{margin-top:28px;padding:16px;flex-direction:column;align-items:stretch;gap:14px}
+    .danger-zone .btn.danger{width:100%;min-height:50px;font-size:15px}
+
+    /* Progress project cards on phone */
+    .st-row{
+      display:grid;
+      grid-template-columns:12px minmax(0,1fr) auto;
+      grid-template-areas:"dot name state" ". msg msg" ". meta meta";
+      gap:4px 10px;
+      padding:14px 15px;
+      align-items:center;
+    }
+    .st-row .dot{grid-area:dot}
+    .st-row .st-name{grid-area:name;font-size:15.5px}
+    .st-row .st-state{grid-area:state;justify-self:end}
+    .st-row .st-msg{grid-area:msg;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;line-height:1.45;color:var(--text2);margin-top:2px}
+    .st-row .st-meta{grid-area:meta;font-size:12px;color:var(--muted);margin-top:4px;gap:8px}
+    .st-row .st-meta .st-state{display:none}
+    .st-state-mob{display:inline-flex !important}
+
+    /* Files tree comfortable touch rows */
+    .node{height:46px;border-radius:9px;margin:1px 4px}
+    .node .name{font-size:15px}
+    .node .chev{width:24px;font-size:11px}
+    .node .ico{width:24px}
+    .node:hover .hov{display:none}
+    .node:hover .badges .hide-hov{display:inline}
+
+    /* Usage rows on phone */
+    .u-row{grid-template-columns:108px 1fr 42px;min-height:42px;padding:7px 6px}
+    .u-name{font-size:13.5px}
+    .u-pct{font-size:13px}
+
+    /* Toast sits cleanly ABOVE the bottom tab bar so thumbs never hide it */
+    .toast{
+      left:14px;right:14px;max-width:none;
+      bottom:calc(var(--navH) + env(safe-area-inset-bottom) + 12px);
+      padding:13px 16px;font-size:14.5px;border-radius:13px;
+    }
+
+    /* Bottom sheet confirmation modal for Roll back on phone */
+    .modal-back{align-items:flex-end;padding:0}
+    .modal-card{max-width:none;border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;padding:22px 18px calc(24px + env(safe-area-inset-bottom))}
+    .modal-actions{flex-direction:column;gap:14px}
+    .modal-actions .btn{width:100%;min-height:52px;font-size:15.5px;border-radius:12px}
+
+    /* Bottom tab bar */
+    .m-nav{
+      display:grid;grid-template-columns:repeat(5,1fr);
+      position:fixed;bottom:0;left:0;right:0;z-index:55;
+      height:calc(var(--navH) + env(safe-area-inset-bottom));
+      padding:4px 4px env(safe-area-inset-bottom);
+      background:rgba(9,9,11,.96);backdrop-filter:blur(12px);
+      border-top:1px solid var(--line);
+    }
+    .m-tab{
+      position:relative;border:0;background:transparent;color:var(--muted);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+      border-radius:11px;cursor:pointer;font-size:11px;font-weight:600;
+      transition:color .12s,background .12s,transform .08s;min-width:0;padding:0 2px;
+    }
+    .m-tab:active{transform:scale(.95);background:#181820}
+    .m-tab.on{color:#ffffff;background:#171821}
+    .m-tab.on::before{content:'';position:absolute;top:2px;width:22px;height:2.5px;border-radius:99px;background:var(--green)}
+    .m-tab.on.hot-tab::before{background:var(--amber)}
+    .m-badge{
+      position:absolute;top:5px;right:calc(50% - 22px);
+      min-width:18px;height:18px;padding:0 4px;border-radius:999px;
+      background:var(--amber);color:#09090b;font-size:10.5px;font-weight:750;
+      border:2px solid #09090b;
+      display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;
+    }
+    .m-badge.ok{background:var(--green)}
+  }
+  .st-state-mob{display:none}
+
+  /* ===================== HOPPER / BENCH (Pure-Black Signal) ===================== */
+  .desk-switch{display:inline-flex;gap:4px;background:#111116;border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:20px}
+  .desk-sw-btn{border:0;background:transparent;color:var(--muted);padding:6px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .12s,color .12s}
+  .desk-sw-btn:hover{color:var(--text)}
+  .desk-sw-btn.on{background:#1c1c24;color:#fff;box-shadow:inset 0 0 0 1px var(--line2)}
+  .desk-sw-cnt{font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;background:#12251c;color:var(--green);border:1px solid #264f3c;font-variant-numeric:tabular-nums}
+
+  .h-drop-wrap{margin-bottom:14px}
+  .h-drop-bar{display:flex;gap:8px;align-items:flex-end;background:#101015;border:1px solid var(--line2);border-radius:13px;padding:7px 7px 7px 13px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .h-drop-bar:focus-within{border-color:#2f8560}
+  .h-drop-in{flex:1;min-width:0;border:0;background:transparent;color:#fff;font:inherit;font-size:15px;line-height:1.45;outline:none;padding:8px 0;resize:none;overflow-y:hidden;min-height:40px;max-height:220px;word-break:break-word;white-space:pre-wrap}
+  .h-drop-in::placeholder{color:var(--dim)}
+  .h-drop-send{flex:none;min-height:42px;padding:0 16px;border-radius:9px}
+
+  .h-hint-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .h-hint-chip{border:1px solid var(--line2);background:#121218;color:var(--muted);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s,transform .08s;min-height:32px}
+  .h-hint-chip:hover{border-color:#444454;color:var(--text)}
+  .h-hint-chip:active{transform:scale(.96)}
+  .h-hint-chip.on{background:#12251c;border-color:#2f8560;color:#9ef2c8}
+
+  .h-ct-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#0e0e14;border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-bottom:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .h-ct-pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:650;border:1px solid var(--line2);background:#16161d;color:var(--text2);max-width:100%}
+  .h-ct-pill.live{background:rgba(61,214,140,.12);border-color:rgba(61,214,140,.38);color:#8ef0c0;box-shadow:0 0 14px rgba(61,214,140,.14)}
+  .h-ct-pill.sleep{background:rgba(245,180,76,.11);border-color:rgba(245,180,76,.34);color:#ffd894}
+  .h-ct-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+  .h-ct-pill.live .h-ct-dot{animation:pulse 1.8s infinite}
+  .h-ct-status{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .h-ct-status.active{color:#d6c4ff;font-weight:600}
+  .h-ct-active-cnt{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:rgba(168,130,255,.16);border:1px solid rgba(168,130,255,.38);color:#dfd0ff;font-variant-numeric:tabular-nums}
+
+  .h-shots-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;max-width:100%;-webkit-overflow-scrolling:touch}
+  .h-shot-thumb{flex:none;height:124px;width:auto;max-width:220px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#09090d;cursor:zoom-in;transition:border-color .14s,transform .12s,box-shadow .14s}
+  .h-shot-thumb:hover{border-color:rgba(168,130,255,.55);box-shadow:0 0 16px rgba(168,130,255,.18);transform:translateY(-1px)}
+
+  .h-box.itch .h-lbl{color:var(--violet)}
+  .h-box.clicks .h-lbl{color:#e0b8ff}
+  .h-clicks-list{margin:3px 0 0;padding-left:17px;color:var(--text2);font-size:13px;line-height:1.45}
+  .h-clicks-list li{margin:2px 0}
+  .h-weak-det{background:#0b0b10;border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:9px 12px;margin-bottom:12px}
+  .h-weak-det summary{cursor:pointer;font-size:11.5px;font-weight:650;color:var(--muted);list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none}
+  .h-weak-det summary:hover{color:var(--text)}
+  .h-weak-det summary::-webkit-details-marker{display:none}
+  .h-weak-det summary::after{content:'▸';color:var(--dim);font-size:11px}
+  .h-weak-det[open] summary::after{content:'▾'}
+  .h-weak-det .h-val{margin-top:6px;font-size:13px;color:var(--text2)}
+  .h-det-stack{display:grid;gap:8px;margin-top:10px}
+  .h-tag.slot{color:#e2d4ff;background:rgba(168,130,255,.16);border-color:rgba(168,130,255,.4);box-shadow:0 0 10px rgba(168,130,255,.14)}
+  .h-tag.hint{color:#9ef2c8;background:rgba(61,214,140,.12);border-color:rgba(61,214,140,.34)}
+  .h-tag.steer{color:#e2d4ff;background:rgba(168,130,255,.15);border-color:rgba(168,130,255,.36);font-variant-numeric:tabular-nums}
+
+  /* ===================== CARETAKER WORKBENCH CHECK-IN (On Deck Card) ===================== */
+  .h-card{background:#111117;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+  .h-card.bench-card{border-color:rgba(168,130,255,.26);background:radial-gradient(120% 60% at 10% -10%,rgba(168,130,255,.09),transparent 58%),linear-gradient(180deg,#13131b 0%,#0e0e14 100%);box-shadow:0 12px 34px rgba(0,0,0,.44),inset 0 1px 0 rgba(255,255,255,.07)}
+  .h-card.run-card{border-color:rgba(168,130,255,.24);background:#121119}
+  .h-card.halt-card{border-color:#4f2428;background:#181012}
+
+  .h-caretaker-summary{font-size:13.5px;color:#d2d2de;line-height:1.5;margin:0 0 12px;word-break:break-word}
+  .bench-card .h-title{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px}
+  .h-preview-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .h-opt-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:11px;border:1px solid rgba(168,130,255,.34);background:rgba(168,130,255,.10);color:#efe8ff;font-size:13px;font-weight:650;text-decoration:none;transition:background .14s,border-color .14s,box-shadow .14s,transform .08s;min-height:42px}
+  .h-opt-btn:hover{background:rgba(168,130,255,.19);border-color:rgba(201,178,255,.58);box-shadow:0 0 18px rgba(168,130,255,.20);color:#fff}
+  .h-opt-btn:active{transform:scale(.97)}
+  .h-opt-btn.h-open-live{border-color:rgba(61,214,140,.42);background:linear-gradient(135deg,rgba(61,214,140,.18),rgba(168,130,255,.12));color:#e6fff2;box-shadow:0 0 16px rgba(61,214,140,.14)}
+  .h-opt-btn.h-open-live:hover{border-color:rgba(110,231,183,.65);background:linear-gradient(135deg,rgba(61,214,140,.26),rgba(168,130,255,.18));box-shadow:0 0 22px rgba(61,214,140,.24)}
+  .h-opt-arrow{opacity:.72;font-size:12px}
+
+  .h-checkin{background:rgba(10,10,15,.82);border:1px solid rgba(168,130,255,.22);border-radius:13px;padding:13px;margin-bottom:13px;display:flex;flex-direction:column;gap:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .h-ci-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .h-ci-who{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#f5f5f8}
+  .h-ci-ava{width:22px;height:22px;border-radius:7px;object-fit:cover;border:1px solid rgba(184,242,75,.55);box-shadow:0 0 8px rgba(184,242,75,.28)}
+  .h-ci-saved{font-size:11px;font-weight:650;color:#8ef0c0;opacity:.92}
+  .h-ci-lbl{font-size:11.5px;font-weight:650;color:#a5a5b8;margin-bottom:5px}
+
+  .h-pulse-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  .h-pulse-btn{min-height:40px;padding:7px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.035);color:#b8b8c8;font-size:12.5px;font-weight:650;cursor:pointer;transition:all .14s ease;text-align:center;line-height:1.25}
+  .h-pulse-btn:hover{border-color:rgba(255,255,255,.24);color:#fff;background:rgba(255,255,255,.07)}
+  .h-pulse-btn:active{transform:scale(.97)}
+  .h-pulse-btn.on.p-track{background:rgba(61,214,140,.17);border-color:rgba(61,214,140,.56);color:#c2fce0;box-shadow:0 0 16px rgba(61,214,140,.22)}
+  .h-pulse-btn.on.p-twist{background:rgba(245,180,76,.17);border-color:rgba(245,180,76,.56);color:#ffe4ad;box-shadow:0 0 16px rgba(245,180,76,.22)}
+  .h-pulse-btn.on.p-missed{background:rgba(244,114,182,.16);border-color:rgba(244,114,182,.54);color:#ffd4ec;box-shadow:0 0 16px rgba(244,114,182,.22)}
+
+  .h-q-block{display:flex;flex-direction:column;gap:6px}
+  .h-q-text{font-size:12.5px;font-weight:600;color:#e4e4ee;line-height:1.35}
+  .h-chip-row{display:flex;flex-wrap:wrap;gap:6px}
+  .h-ci-chip{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#b8b8c8;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;min-height:34px;transition:all .14s ease}
+  .h-ci-chip:hover{border-color:rgba(168,130,255,.42);color:#fff}
+  .h-ci-chip.on{background:rgba(168,130,255,.20);border-color:rgba(168,130,255,.58);color:#f3ecff;box-shadow:0 0 14px rgba(168,130,255,.22)}
+
+  .h-react-list{display:flex;flex-direction:column;gap:5px}
+  .h-react-pill{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:9px;background:rgba(244,114,182,.08);border:1px solid rgba(244,114,182,.26);font-size:12px;color:#f0dff0}
+  .h-react-pill.is-note{background:rgba(168,130,255,.09);border-color:rgba(168,130,255,.28);color:#e6dcff}
+  .h-react-scr{font-weight:700;color:#fff;white-space:nowrap}
+  .h-react-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d6d6e6}
+  .h-react-x{border:0;background:transparent;color:#9a9ab0;cursor:pointer;font-size:13px;padding:0 3px;line-height:1}
+  .h-react-x:hover{color:#fff}
+
+  .h-ci-note-row{display:flex;gap:7px;align-items:flex-end}
+  .h-ci-note{flex:1;min-width:0;background:#12121a;color:var(--text);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 11px;font:inherit;font-size:13.5px;line-height:1.4;outline:none;resize:none;overflow-y:hidden;min-height:38px;max-height:140px}
+  .h-ci-note:focus{border-color:rgba(168,130,255,.58);box-shadow:0 0 0 2px rgba(168,130,255,.14)}
+  .h-ci-note::placeholder{color:#717182}
+
+  /* 3 Plain Next Moves + Quiet Park / Scrap Footer */
+  .h-next-moves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .h-move-btn{min-height:46px;padding:9px 12px;border-radius:11px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .14s ease;border:1px solid transparent}
+  .h-move-btn:active:not(:disabled){transform:scale(.97)}
+  .h-move-push{background:linear-gradient(135deg,rgba(61,214,140,.22),rgba(184,242,75,.14));border-color:rgba(61,214,140,.48);color:#dcffec;box-shadow:0 4px 18px rgba(61,214,140,.14)}
+  .h-move-push:hover:not(:disabled){background:linear-gradient(135deg,rgba(61,214,140,.30),rgba(184,242,75,.20));border-color:rgba(110,231,183,.70);box-shadow:0 6px 22px rgba(61,214,140,.24);color:#fff}
+  .h-move-floor{background:linear-gradient(135deg,rgba(168,130,255,.22),rgba(244,114,182,.13));border-color:rgba(168,130,255,.48);color:#efe6ff;box-shadow:0 4px 18px rgba(168,130,255,.14)}
+  .h-move-floor:hover:not(:disabled){background:linear-gradient(135deg,rgba(168,130,255,.32),rgba(244,114,182,.20));border-color:rgba(201,178,255,.72);box-shadow:0 6px 22px rgba(168,130,255,.24);color:#fff}
+  .h-move-real{background:linear-gradient(135deg,rgba(245,180,76,.20),rgba(244,114,182,.10));border-color:rgba(245,180,76,.46);color:#ffe7b8;box-shadow:0 4px 18px rgba(245,180,76,.12)}
+  .h-move-real:hover:not(:disabled){background:linear-gradient(135deg,rgba(245,180,76,.28),rgba(244,114,182,.16));border-color:rgba(253,212,136,.68);box-shadow:0 6px 22px rgba(245,180,76,.22);color:#fff}
+
+  .h-quiet-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07)}
+  .h-quiet-hint{font-size:11.5px;color:#727284}
+  .h-quiet-acts{display:inline-flex;align-items:center;gap:4px}
+  .h-quiet-link{border:0;background:transparent;color:#8e8ea4;font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;cursor:pointer;transition:color .12s,background .12s}
+  .h-quiet-link:hover{color:#f5f5f8;background:rgba(255,255,255,.06)}
+  .h-quiet-link.is-scrap:hover{color:#ff9e9e;background:rgba(235,115,115,.12)}
+
+  .h-lb-back{position:fixed;inset:0;z-index:95;background:rgba(4,4,7,.9);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:18px}
+  .h-lb-back.open{display:flex}
+  .h-lb-box{position:relative;max-width:min(960px,96vw);max-height:90vh;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .h-lb-img{max-width:100%;max-height:82vh;border-radius:12px;border:1px solid var(--line2);box-shadow:0 24px 64px rgba(0,0,0,.85);background:#09090c}
+  .h-lb-bar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--text2);font-size:12.5px}
+
+  .h-qsteer-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid #1b1b24}
+  .h-q-btns{margin-left:auto;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .h-run-now,.h-q-act{padding:5px 11px;font-size:12.5px;min-height:34px}
+  .h-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .h-id{font-family:"Cascadia Code",Consolas,monospace;font-size:11.5px;font-weight:700;color:var(--muted);background:#181820;border:1px solid var(--line2);border-radius:6px;padding:1px 7px}
+  .h-tag{font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;border:1px solid var(--line2);background:#17171f;color:var(--text2)}
+  .h-tag.you{color:var(--green);background:#102219;border-color:#224735}
+  .h-tag.agent{color:var(--violet);background:#1d162b;border-color:#3a2b59}
+  .h-tag.shot{color:var(--amber);background:#251c0f;border-color:#4f3a1c;font-variant-numeric:tabular-nums}
+  .h-tag.mode{color:var(--muted);background:#131318;border-color:var(--line)}
+  .h-title{font-size:15.5px;font-weight:650;color:#fff;line-height:1.35;margin:0 0 10px;word-break:break-word}
+
+  .h-kv{display:grid;gap:8px;margin-bottom:12px}
+  .h-box{background:#0b0b0f;border:1px solid #1e1e26;border-radius:10px;padding:10px 12px}
+  .h-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.55px;color:var(--muted);margin-bottom:3px}
+  .h-box.bet .h-lbl{color:var(--green)}
+  .h-box.weak .h-lbl{color:var(--amber)}
+  .h-box.hard .h-lbl{color:var(--violet)}
+  .h-val{font-size:13.5px;color:var(--text2);line-height:1.45;word-break:break-word}
+
+  .h-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .h-actions a.btn{text-decoration:none}
+  .h-open-live{background:#17392b;border-color:#2f8560;color:#d6fae6;font-weight:650}
+  .h-open-live:hover{background:#1e4836;border-color:#3a9d73;color:#fff}
+  .h-offline-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);display:inline-block}
+  .h-live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
+
+  .h-steer-row{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
+  .h-steer-in{flex:1;min-width:0;background:#0c0c10;color:var(--text);border:1px solid var(--line2);border-radius:9px;padding:9px 11px;font:inherit;font-size:14px;line-height:1.4;outline:none;resize:none;overflow-y:hidden;min-height:40px;max-height:160px;word-break:break-word;white-space:pre-wrap}
+  .h-steer-in:focus{border-color:var(--violet)}
+  .h-steer-prev{font-size:12px;color:var(--muted);margin-top:6px}
+  .h-steer-prev b{color:var(--text2);font-weight:600}
+
+  .h-subh{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.55px;color:var(--muted);margin:12px 0 8px;display:flex;align-items:center;gap:7px}
+  .h-qitem{background:#111116;border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:8px}
+  .h-qitem.is-you{border-left:2.5px solid var(--green)}
+  .h-qitem.is-agent{border-left:2.5px solid var(--violet)}
+  .h-qdrop{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;word-break:break-word}
+  .h-qmeta{font-size:12px;color:var(--muted);margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  .h-grave-btn{width:100%;display:flex;align-items:center;justify-content:space-between;background:#101015;border:1px solid var(--line);border-radius:11px;padding:12px 14px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
+  .h-grave-btn:hover{border-color:var(--line2);color:var(--text2)}
+  .h-grave-list{margin-top:10px}
+  .h-gitem{background:#0d0d12;border:1px solid #1c1c24;border-radius:10px;padding:11px 13px;margin-bottom:8px}
+  .h-gdrop{font-size:13.5px;color:var(--text2);font-weight:500;word-break:break-word}
+  .h-gend{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.45;word-break:break-word}
+
+  .h-pb-card{background:linear-gradient(180deg,#111218 0%,#0d0e13 100%);border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+  .h-pb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .h-pb-title{font-size:13.5px;font-weight:650;color:var(--text);letter-spacing:.1px}
+  .h-pb-list{display:flex;flex-direction:column;gap:10px}
+  .h-pb-item{display:grid;grid-template-columns:22px minmax(0,1fr);gap:9px;align-items:baseline;font-size:13.5px;line-height:1.5;color:var(--text2)}
+  .h-pb-num{width:22px;height:22px;border-radius:7px;background:#191a24;border:1px solid var(--line2);color:var(--green);font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+  .h-pb-lead{color:#ffffff;font-weight:650}
+  .h-pb-item i{color:#d5d7e3}
+  .h-pb-foot{margin-top:12px;padding-top:10px;border-top:1px solid #1c1d26;font-size:12.5px;font-style:italic;color:var(--muted);line-height:1.45}
+  .h-pb-edit-row{background:#0b0c10;border:1px solid #1f2029;border-radius:10px;padding:10px;margin-bottom:9px;display:flex;flex-direction:column;gap:7px}
+  .h-pb-edit-top{display:flex;gap:7px;align-items:center}
+  .h-pb-edit-in{width:100%;background:#12131a;color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:13.5px;outline:none}
+  .h-pb-edit-in:focus{border-color:#2f8560}
+  .h-pb-edit-ta{width:100%;background:#12131a;color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;line-height:1.45;outline:none;resize:vertical;min-height:54px}
+  .h-pb-edit-ta:focus{border-color:#2f8560}
+
+  .h-field{margin-bottom:12px}
+  .h-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px}
+  .h-field input,.h-field textarea{width:100%;background:#0c0c10;color:var(--text);border:1px solid var(--line2);border-radius:9px;padding:10px 12px;font:inherit;outline:none}
+  .h-field input:focus,.h-field textarea:focus{border-color:#4b4b60}
+  @media (max-width: 860px){
+    .desk-switch{display:none}
+    .h-hint-chip{min-height:36px;padding:6px 12px;font-size:12.5px}
+    .h-shot-thumb{height:108px;max-width:190px}
+    .h-opt-btn{flex:1 1 calc(50% - 4px);justify-content:space-between;min-height:44px;font-size:13px}
+    .h-opt-btn.h-open-live{flex:1 1 100%;justify-content:center;min-height:48px;font-size:14.5px}
+    .h-pulse-row{grid-template-columns:1fr;gap:6px}
+    .h-pulse-btn{min-height:42px;font-size:13.5px}
+    .h-next-moves{grid-template-columns:1fr;gap:8px}
+    .h-move-btn{min-height:48px;font-size:14.5px}
+    .h-actions .btn{min-height:46px;padding:9px 13px;font-size:14px;border-radius:11px}
+    .h-actions .h-open-live{flex:1 1 100%;min-height:50px;font-size:15px}
+    .h-actions .btn:not(.h-open-live){flex:1 1 calc(50% - 6px);min-width:110px}
+    .h-steer-row .btn{min-height:42px;padding:0 14px;flex:none}
+  }
+</style>
+</head>
+<body class="tab-needs">
+<header class="m-bar" id="mbar">
+  <div class="m-brand">
+    <span>Foundry</span>
+    <span class="m-live" id="mLive">Live</span>
+  </div>
+  <div class="m-bar-r">
+    <a class="dock-pill" id="mCrewDockLink" href="/hub" title="Open Crew Dock Phone Hub">Crew Dock</a>
+    <button class="m-icon-btn" id="mRefreshBtn" title="Refresh" onclick="manualRefresh(this)">↻</button>
+  </div>
+</header>
+
+<div class="app" id="app">
+  <main class="left" id="left"></main>
+  <div class="grip" id="grip"></div>
+  <aside class="right">
+    <div class="rhead">
+      <b>Foundry</b>
+      <a class="dock-pill" id="dCrewDockLink" href="/hub" title="Open Crew Dock Phone Hub">Crew Dock</a>
+      <button class="hb" style="margin-left:auto" title="Collapse all" onclick="collapseAll()">⤒</button>
+      <button class="hb" title="Open in Explorer" onclick="api('/api/open',{path:''})">↗</button>
+    </div>
+    <div class="usage-box" id="usage"></div>
+    <div class="tree" id="tree"></div>
+  </aside>
+</div>
+
+<nav class="m-nav" id="mnav" aria-label="Foundry sections">
+  <button class="m-tab on" data-tab="needs" onclick="setTab('needs')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+    <span>Needs</span>
+    <span class="m-badge" id="mNeedsBadge" style="display:none"></span>
+  </button>
+  <button class="m-tab" data-tab="hopper" onclick="setTab('hopper')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7v6l-4 2v-8L4 5z"/></svg>
+    <span>Hopper</span>
+    <span class="m-badge ok" id="mHopperBadge" style="display:none"></span>
+  </button>
+  <button class="m-tab" data-tab="progress" onclick="setTab('progress')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="13" height="4" rx="1.5"/><rect x="3" y="16" width="16" height="4" rx="1.5"/></svg>
+    <span>Progress</span>
+  </button>
+  <button class="m-tab" data-tab="activity" onclick="setTab('activity')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span>Activity</span>
+  </button>
+  <button class="m-tab" data-tab="files" onclick="setTab('files')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span>Files</span>
+  </button>
+</nav>
+
+<div class="modal-back" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
+  <div class="modal-card">
+    <div class="modal-kicker">Roll back core</div>
+    <h3 class="modal-title" id="cmTitle">Roll back?</h3>
+    <p class="modal-body" id="cmBody"></p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="cmCancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn danger-solid" id="cmGo" onclick="confirmRollbackGo()">Yes, roll back</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="hopperModal" role="dialog" aria-modal="true" aria-labelledby="hmTitle">
+  <div class="modal-card" id="hmCard">
+    <div class="modal-kicker" id="hmKicker">Hopper</div>
+    <h3 class="modal-title" id="hmTitle"></h3>
+    <div id="hmBody"></div>
+    <div class="modal-actions" id="hmActions"></div>
+  </div>
+</div>
+
+<div class="h-lb-back" id="hopperLightbox" role="dialog" aria-modal="true" aria-label="Screenshot preview">
+  <div class="h-lb-box">
+    <div class="h-lb-bar">
+      <span id="hlbCaption"></span>
+      <button class="btn icon-close" onclick="closeHopperLightbox()" title="Close (Esc)">✕</button>
+    </div>
+    <img class="h-lb-img" id="hlbImg" src="" alt="Bench screenshot">
+  </div>
+</div>
+
+<div class="toast" id="toast" onclick="this.className='toast'"><span class="tico" id="tIco">✓</span><span id="tMsg"></span></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isPhone = () => window.matchMedia('(max-width: 860px)').matches;
+
+const state = {
+  sel: localStorage.getItem('sel') || null,
+  tab: location.hash === '#hopper' ? 'hopper' : location.hash === '#needs' ? 'needs' : (localStorage.getItem('mtab') || 'needs'),
+  deskView: location.hash === '#hopper' ? 'hopper' : location.hash === '#needs' ? 'board' : (localStorage.getItem('deskView') || 'board'),
+  open: new Set(JSON.parse(localStorage.getItem('open') || '["lab","core"]')),
+  kids: new Map(), board: null, hopper: null, graveOpen: false, parkedOpen: false, playbookEditing: false, playbookDraft: null, dropHint: '', focus: null, flagging: null, showLog: false, rawMode: false,
+  usage: null, openPool: null, lastLeftHTML: '', lastLeftSel: null, lastTab: null,
+  connected: true, busy: new Map(), pendingRollback: null, hopperModal: null, deferRender: false,
+};
+
+function autoGrow(el, maxH = 220){
+  if (!el) return;
+  el.style.height = 'auto';
+  const next = Math.min(el.scrollHeight, maxH);
+  el.style.height = next + 'px';
+  el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
+}
+
+async function get(url){ const r = await fetch(url); const j = await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||r.statusText); return j; }
+async function api(url, body){
+  let r; try { r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})}); }
+  catch(e){ toast('The Foundry helper is not answering, so nothing happened.', 'err'); throw e; }
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){ toast(j.error||'Action failed', 'err'); throw new Error(j.error||'Action failed'); }
+  return j;
+}
+
+function toast(msg, kind='info'){
+  const t=$('#toast'), ico=$('#tIco'), m=$('#tMsg');
+  const k = kind === true ? 'err' : kind === false ? 'info' : kind;
+  ico.textContent = k === 'ok' ? '✓' : k === 'err' ? '!' : '·';
+  m.textContent = msg;
+  t.className = 'toast show' + (k === 'ok' ? ' ok' : k === 'err' ? ' err' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.className = 'toast'; }, k === 'err' ? 6500 : 3000);
+}
+
+function setLiveBadge(ok){
+  state.connected = ok;
+  const el = $('#mLive'); if (!el) return;
+  el.textContent = ok ? 'Live' : 'Reconnecting…';
+  el.className = 'm-live' + (ok ? '' : ' off');
+}
+
+function ago(iso){ if(!iso) return ''; const s=(Date.now()-new Date(iso))/1000; if(s<60)return 'now'; if(s<3600)return Math.round(s/60)+'m'; if(s<86400)return Math.round(s/3600)+'h'; return Math.round(s/86400)+'d'; }
+function cap(s=''){ return s ? s[0].toUpperCase()+s.slice(1) : ''; }
+
+// Visible per-button feedback that survives DOM re-renders
+async function runBtnAction(key, btn, { busyText, doneText, run }){
+  if (state.busy.get(key)) return;
+  state.busy.set(key, { mode: 'busy', label: busyText });
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add('is-busy');
+    btn.innerHTML = `<span class="spin"></span><span>${esc(busyText)}</span>`;
+  }
+  try {
+    const res = await run();
+    state.busy.set(key, { mode: 'done', label: doneText });
+    if (btn && btn.isConnected) {
+      btn.classList.remove('is-busy');
+      btn.classList.add('is-done');
+      btn.innerHTML = `<span>✓ ${esc(doneText)}</span>`;
+    }
+    toast(doneText, 'ok');
+    // the card he acted on steps back at once, so a click shows it landed before the board has rebuilt
+    const card = btn && btn.closest && btn.closest('.card');
+    if (card) card.classList.add('handled');
+    await refreshAll();
+    setTimeout(() => {
+      if (state.busy.get(key)?.mode === 'done') { state.busy.delete(key); renderLeft(); }
+    }, 1100);
+    return res;
+  } catch (e) {
+    state.busy.set(key, { mode: 'err', label: 'Failed' });
+    if (btn && btn.isConnected) {
+      btn.classList.remove('is-busy');
+      btn.classList.add('is-err');
+      btn.disabled = false;
+      btn.innerHTML = `<span>! Failed</span>`;
+    }
+    setTimeout(() => {
+      if (state.busy.get(key)?.mode === 'err') { state.busy.delete(key); renderLeft(); }
+    }, 1800);
+    return null;
+  }
+}
+
+function btnStateAttrs(key, defaultLabel){
+  const st = state.busy.get(key);
+  if (!st) return { cls: '', dis: '', html: esc(defaultLabel) };
+  if (st.mode === 'busy') return { cls: ' is-busy', dis: ' disabled', html: `<span class="spin"></span><span>${esc(st.label)}</span>` };
+  if (st.mode === 'done') return { cls: ' is-done', dis: ' disabled', html: `<span>✓ ${esc(st.label)}</span>` };
+  return { cls: ' is-err', dis: '', html: `<span>! ${esc(st.label)}</span>` };
+}
+
+function md(src=''){
+  const blocks = String(src).replace(/\r\n/g,'\n').split(/```/);
+  return blocks.map((b,i)=> i%2 ? `<pre><code>${esc(b.replace(/^\w*\n/,''))}</code></pre>` : b.split(/\n{2,}/).map(par=>{
+    const trimmed = par.trim(); if (!trimmed) return '';
+    if (/^---+$/.test(trimmed)) return '<hr>';
+    const lines = trimmed.split('\n');
+    const inline = s => esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+    if (lines.every(l=>/^\s*>\s?/.test(l))) return '<blockquote>'+lines.map(l=>inline(l.replace(/^\s*>\s?/,''))).join('<br>')+'</blockquote>';
+    if (lines.every(l=>/^\s*[-*]\s/.test(l))) return '<ul>'+lines.map(l=>'<li>'+inline(l.replace(/^\s*[-*]\s/,''))+'</li>').join('')+'</ul>';
+    if (lines.every(l=>/^\s*\d+\.\s/.test(l))) return '<ol>'+lines.map(l=>'<li>'+inline(l.replace(/^\s*\d+\.\s/,''))+'</li>').join('')+'</ol>';
+    const h = trimmed.match(/^(#{1,3})\s+(.*)$/);
+    if (h && lines.length===1) return `<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`;
+    return '<p>'+lines.map(inline).join('<br>')+'</p>';
+  }).join('')).join('');
+}
+
+const ICON = {
+  folder: (open)=>`<svg width="15" height="15" viewBox="0 0 16 16"><path d="M1.5 4.2c0-.7.6-1.2 1.2-1.2h3.4l1.4 1.5h5.8c.7 0 1.2.5 1.2 1.2v6.6c0 .7-.5 1.2-1.2 1.2H2.7c-.6 0-1.2-.5-1.2-1.2z" fill="${open?'#7a7a88':'#5c5c68'}"/></svg>`,
+  repo: ()=>`<svg width="15" height="15" viewBox="0 0 16 16"><path d="M1.5 4.2c0-.7.6-1.2 1.2-1.2h3.4l1.4 1.5h5.8c.7 0 1.2.5 1.2 1.2v6.6c0 .7-.5 1.2-1.2 1.2H2.7c-.6 0-1.2-.5-1.2-1.2z" fill="#3a6b54"/><circle cx="8" cy="9" r="1.6" fill="#bcecd2"/></svg>`,
+  file: (n)=>{ const ext=(n.split('.').pop()||'').toLowerCase(); const c={md:'#9a9aa8',js:'#c9ad5a',mjs:'#c9ad5a',ts:'#6c9ec9',json:'#b08d68',html:'#c97a5b',css:'#7a94c9',py:'#6fa86f',yaml:'#a683c4',yml:'#a683c4'}[ext]||'#646470';
+    return `<svg width="13" height="15" viewBox="0 0 14 16"><path d="M2.5 1.5h6l3 3v10h-9z" fill="none" stroke="${c}" stroke-width="1.2"/><path d="M8.5 1.5v3h3" fill="none" stroke="${c}" stroke-width="1.2"/></svg>`; },
+  pin: `<svg width="12" height="12" viewBox="0 0 16 16"><path d="M10 1l5 5-2 1-3 3 .5 3.5L9 15l-3-3-4 4-1-1 4-4-3-3 1.5-1.5L7 7l3-3z" fill="currentColor"/></svg>`,
+  flag: `<svg width="12" height="12" viewBox="0 0 16 16"><path d="M3 1v14M3 2h9l-2 3.5L12 9H3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+};
+
+// ---------- mobile tabs ----------
+function syncBodyClasses(){
+  document.body.className = `tab-${state.tab}${state.sel ? ' has-sel' : ''}`;
+  document.querySelectorAll('.m-tab').forEach(b => {
+    const on = b.dataset.tab === state.tab;
+    b.classList.toggle('on', on);
+  });
+  const count = state.board?.attention?.length || 0;
+  const badge = $('#mNeedsBadge');
+  const needsTab = document.querySelector('.m-tab[data-tab="needs"]');
+  if (badge) {
+    badge.style.display = count ? 'inline-flex' : 'none';
+    badge.textContent = count > 99 ? '99+' : String(count);
+  }
+  if (needsTab) needsTab.classList.toggle('hot-tab', count > 0);
+
+  const benchCount = state.hopper?.bench?.length || 0;
+  const hBadge = $('#mHopperBadge');
+  if (hBadge) {
+    hBadge.style.display = benchCount ? 'inline-flex' : 'none';
+    hBadge.textContent = String(benchCount);
+  }
+}
+
+async function setTab(tab){
+  state.tab = tab;
+  localStorage.setItem('mtab', tab);
+  if (tab === 'hopper') state.deskView = 'hopper';
+  if (state.sel) { state.sel = null; state.focus = null; state.flagging = null; localStorage.removeItem('sel'); }
+  syncBodyClasses();
+  renderLeft();
+  $('#left').scrollTop = 0;
+  await Promise.all([loadBoard(), loadHopper()]);
+  renderLeft();
+}
+
+async function setDeskView(v){
+  state.deskView = v;
+  localStorage.setItem('deskView', v);
+  if (v === 'hopper') { state.sel = null; state.focus = null; state.flagging = null; localStorage.removeItem('sel'); }
+  syncBodyClasses();
+  renderLeft();
+  if (v === 'hopper') { await loadHopper(); renderLeft(); }
+}
+
+async function manualRefresh(btn){
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span>'; }
+  try {
+    await refreshAll();
+    toast('Up to date', 'ok');
+  } catch {
+    toast('Could not reach Foundry', 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↻'; }
+  }
+}
+
+// ---------- tree ----------
+async function loadKids(p){ state.kids.set(p, await get('/api/tree?path='+encodeURIComponent(p))); }
+async function refreshTree(){
+  const paths = ['', ...[...state.open]];
+  await Promise.all(paths.map(p => loadKids(p).catch(()=>{ state.open.delete(p); })));
+  renderTree();
+}
+function saveOpen(){ localStorage.setItem('open', JSON.stringify([...state.open])); }
+async function toggle(p){
+  if (state.open.has(p)) state.open.delete(p); else { state.open.add(p); if(!state.kids.has(p)) await loadKids(p); }
+  saveOpen(); renderTree();
+}
+function collapseAll(){ state.open.clear(); saveOpen(); renderTree(); }
+function renderTree(){
+  const rows = [];
+  const walk = (p, depth) => {
+    for (const n of (state.kids.get(p) || [])) {
+      const isOpen = n.dir && state.open.has(n.path);
+      const badges = [];
+      if (n.flags) badges.push(`<span class="ind flag">⚑ ${n.flags}</span>`);
+      if (n.pinned) badges.push(`<span class="ind pin">${ICON.pin}</span>`);
+      else if (n.pinnedInside && !isOpen) badges.push(`<span class="ind pin" style="opacity:.45">${ICON.pin}</span>`);
+      if (n.repo){
+        if (n.repo.state==='ahead') badges.push(`<span class="ind up hide-hov">↑${n.repo.ahead}</span>`);
+        if (n.repo.state==='diverged') badges.push(`<span class="ind split hide-hov">split</span>`);
+        if (n.repo.changes) badges.push(`<span class="ind chg hide-hov">● ${n.repo.changes}</span>`);
+        if (n.repo.version && n.path.startsWith('core/')) badges.push(`<span class="ind hide-hov">${esc(n.repo.version)}</span>`);
+      }
+      const guides = Array.from({length:depth},(_,i)=>`<span class="guide" style="left:${18+i*16}px"></span>`).join('');
+      const icon = n.repo ? ICON.repo() : n.dir ? ICON.folder(isOpen) : ICON.file(n.name);
+      rows.push(`<div class="node ${state.sel===n.path?'sel':''}" data-p="${esc(n.path)}" data-dir="${n.dir?1:''}" style="padding-left:${10+depth*16}px">
+        ${guides}<span class="chev ${isOpen?'open':''}">${n.dir?'▶':''}</span><span class="ico">${icon}</span>
+        <span class="name">${esc(n.name)}</span>
+        <span class="badges">${badges.join('')}<span class="hov">
+          <button class="hb" data-act="pin" title="Current focus" style="${n.pinned?'color:var(--violet)':''}">${ICON.pin}</button>
+          <button class="hb" data-act="flag" title="Flag" style="color:var(--amber)">${ICON.flag}</button>
+        </span></span></div>`);
+      if (isOpen) walk(n.path, depth+1);
+    }
+  };
+  walk('', 0);
+  $('#tree').innerHTML = rows.join('') || '<div class="quiet" style="padding:16px">Empty</div>';
+}
+$('#tree').addEventListener('click', async (e) => {
+  const row = e.target.closest('.node'); if (!row) return;
+  const p = row.dataset.p, act = e.target.closest('[data-act]')?.dataset.act;
+  if (act === 'pin') { const pinned = state.board?.pins.some(x=>x.path===p); await api(pinned?'/api/unpin':'/api/pin',{path:p}); toast(pinned?'Removed from focus':'Added to Current Focus', 'ok'); return; }
+  if (act === 'flag') { select(p, true); return; }
+  if (isPhone()) {
+    // On phone: tapping a top room folder expands it; tapping a repo or file opens it in the inspector
+    if (row.dataset.dir && !p.includes('/')) { toggle(p); return; }
+    if (row.dataset.dir && e.target.closest('.chev')) { toggle(p); return; }
+    if (row.dataset.dir && !state.open.has(p)) toggle(p);
+    select(p);
+    return;
+  }
+  if (row.dataset.dir && (e.target.closest('.chev') || state.sel === p)) toggle(p);
+  else if (row.dataset.dir && !state.open.has(p)) toggle(p);
+  select(p);
+});
+
+// ---------- selection / focus ----------
+async function select(p, flag=false){
+  state.sel = p; state.flagging = flag ? {for:'antigravity', tag:'Review', send:true} : null;
+  p ? localStorage.setItem('sel', p) : localStorage.removeItem('sel');
+  syncBodyClasses();
+  renderTree();
+  if (p) {
+    state.lastLeftHTML = '';
+    $('#left').innerHTML = `<div class="inspector"><div class="ins-head">${repoHeaderHTML(p)}<button class="btn icon-close" style="margin-left:auto" onclick="select(null)" title="Close">✕</button></div><div class="ins-stat"><span class="spin"></span> Loading…</div></div>`;
+  }
+  const focusP = p ? get('/api/focus?path='+encodeURIComponent(p)).catch(()=>null) : Promise.resolve(null);
+  const boardP = loadBoard();
+  state.focus = await focusP;
+  if (p && !state.focus) { state.sel = null; localStorage.removeItem('sel'); syncBodyClasses(); }
+  if (state.sel === p) renderLeft();
+  if (flag) setTimeout(()=>$('#flagNote')?.focus(), 30);
+  await boardP;
+  if (state.sel === p) renderLeft();
+}
+async function reveal(p){
+  const parts = p.split('/'); let acc='';
+  for (let i=0;i<parts.length-1;i++){ acc = acc?acc+'/'+parts[i]:parts[i]; state.open.add(acc); if(!state.kids.has(acc)) await loadKids(acc).catch(()=>{}); }
+  saveOpen(); await select(p);
+  document.querySelector(`.node[data-p="${CSS.escape(p)}"]`)?.scrollIntoView({block:'center'});
+}
+
+// ---------- left ----------
+async function loadBoard(){
+  const params = new URLSearchParams();
+  if (state.sel) params.set('filter', state.sel);
+  if (state.showLog || (isPhone() && state.tab === 'activity')) params.set('log', '1');
+  const qs = params.toString();
+  state.board = await get('/api/board' + (qs ? '?' + qs : ''));
+  syncBodyClasses();
+}
+
+async function loadHopper(){
+  state.hopper = await get('/api/hopper').catch(() => state.hopper);
+  syncBodyClasses();
+}
+
+function deskSwitchHTML(){
+  const benchN = state.hopper?.bench?.length || 0;
+  return `<div class="desk-switch">
+    <button class="desk-sw-btn ${state.deskView !== 'hopper' ? 'on' : ''}" onclick="setDeskView('board')">Board</button>
+    <button class="desk-sw-btn ${state.deskView === 'hopper' ? 'on' : ''}" onclick="setDeskView('hopper')">Hopper${benchN ? ` <span class="desk-sw-cnt">${benchN}</span>` : ''}</button>
+  </div>`;
+}
+
+const DROP_HINTS = [
+  { id: 'explore', label: 'Explore angles' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'upgrade', label: 'Upgrade ours' },
+  { id: 'scout', label: 'Deep scout' },
+];
+const HINT_LABELS = Object.fromEntries(DROP_HINTS.map((h) => [h.id, h.label]));
+
+function hopperDropBarHTML(){
+  return `<div class="h-drop-wrap" id="hopperDropHost">
+    <div class="h-drop-bar">
+      <textarea id="hopperDropInput" class="h-drop-in" rows="1" placeholder="Drop an idea — it expands as you type…" autocomplete="off" spellcheck="true"></textarea>
+      <button class="btn primary h-drop-send" id="hopperDropSend" onclick="hopperDrop(this)">Send</button>
+    </div>
+    <div class="h-hint-chips" id="hopperHintChips" role="group" aria-label="Optional drop hint">
+      ${DROP_HINTS.map((h) => `<button type="button" class="h-hint-chip${state.dropHint === h.id ? ' on' : ''}" data-hint="${h.id}" onclick="toggleDropHint('${h.id}')">${h.label}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function toggleDropHint(val){
+  state.dropHint = state.dropHint === val ? '' : val;
+  document.querySelectorAll('#hopperHintChips .h-hint-chip').forEach((el) => {
+    el.classList.toggle('on', el.dataset.hint === state.dropHint);
+  });
+}
+
+function benchLiveUrl(c){
+  if (c.liveKind === 'read' || c.liveKind === 'blocked') {
+    return c.liveMount || `/hopper/live/${c.id}/`;
+  }
+  const slot = Number(c.benchSlot);
+  if (Number.isInteger(slot) && slot >= 1 && slot <= 3) {
+    const port = 7990 + slot;
+    if (location.hostname.endsWith('.ts.net')) return `https://${location.hostname}:${port}/`;
+    return `http://127.0.0.1:${port}/`;
+  }
+  return c.liveMount || `/hopper/live/${c.id}/`;
+}
+
+function openHopperLightbox(src, caption){
+  $('#hlbImg').src = src;
+  $('#hlbCaption').textContent = caption || '';
+  $('#hopperLightbox').classList.add('open');
+}
+
+function closeHopperLightbox(){
+  $('#hopperLightbox').classList.remove('open');
+  $('#hlbImg').src = '';
+}
+
+function hopperBodyHTML(){
+  const h = state.hopper;
+  if (!h) {
+    return `<div class="quiet">Loading Hopper…</div>`;
+  }
+
+  const lim = h.limits || { running: 2, bench: 3, shots: 3 };
+  const bench = h.bench || [];
+  const running = h.running || [];
+  const halted = h.halted || [];
+  const queue = h.queue || [];
+  const parked = h.parked || [];
+  const graveyard = h.graveyard || [];
+  const yourQueue = queue.filter((c) => c.from === 'you' || c.from === 'user');
+  const agentQueue = queue.filter((c) => c.from !== 'you' && c.from !== 'user');
+
+  const ct = h.caretaker || h.watcher || {};
+  const armed = Boolean(ct.armed);
+  const activeRuns = ct.activeRuns && typeof ct.activeRuns === 'object' ? Object.keys(ct.activeRuns) : [];
+  const pillLabel = armed ? 'Caretaker Live · Armed' : 'Queued · Caretaker Sleeping';
+  const statusLine = ct.statusLine || pillLabel;
+  const caretakerBarHTML = `<div class="h-ct-bar" id="hCaretakerBar">
+    <span class="h-ct-pill ${armed ? 'live' : 'sleep'}" id="hCaretakerPill">
+      <span class="h-ct-dot"></span><span>${esc(pillLabel)}</span>
+    </span>
+    <span class="h-ct-status ${armed && activeRuns.length ? 'active' : ''}" id="hCaretakerStatus">
+      ${armed ? `<span>${esc(statusLine)}</span>` : `<span>Drops queue safely until Caretaker arms</span>`}
+      ${activeRuns.length ? `<span class="h-ct-active-cnt">${activeRuns.length} active</span>` : ''}
+    </span>
+  </div>`;
+
+  const haltedHTML = halted.length ? `<div class="sec">
+    <div class="sec-h"><span class="sec-t">Halted by tripwire</span><span class="sec-n" style="color:var(--red);border-color:#54262a;background:#281416">${halted.length}</span></div>
+    ${halted.map((c) => {
+      const why = (c.tripped?.why || []).join('; ') || 'Tripwire triggered';
+      return `<div class="h-card halt-card">
+        <div class="h-top">
+          <span class="h-id">${esc(c.id)}</span>
+          <span class="h-tag" style="color:var(--red);border-color:#54262a;background:#281416">Halted</span>
+          <span class="card-right">${ago(c.tripped?.at || c.updated)}</span>
+        </div>
+        <div class="h-title">${esc(c.drop)}</div>
+        <div class="h-box"><div class="h-lbl" style="color:var(--red)">Tripwire</div><div class="h-val">${esc(why)}</div></div>
+        <div class="h-actions" style="margin-top:10px">
+          <button class="btn" onclick="hopperPark('${esc(c.id)}', this)">Park</button>
+          <button class="btn danger" onclick="openHopperNuke('${esc(c.id)}')">Nuke It</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>` : '';
+
+function benchOptionUrl(baseUrl, optPath){
+  if (!optPath || optPath === '/') return baseUrl;
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const p = optPath.startsWith('/') ? optPath : '/' + optPath;
+  return cleanBase + p;
+}
+
+function deriveBenchOptions(c){
+  const sr = c.showroom || {};
+  if (Array.isArray(sr.options) && sr.options.length) return sr.options;
+  const txt = sr.swing || c.bet || '';
+  const m = txt.match(/\(A:\s*([^,)]+),\s*B:\s*([^,)]+),\s*C:\s*([^)]+)\)/i);
+  if (m) {
+    const clean = (s) => s.replace(/\s+(?:paste launcher|live fork.*|switchboard.*)$/i, '').trim().slice(0, 34);
+    return [
+      { id: 'a', label: `A · ${clean(m[1])}`, path: '/?concept=a' },
+      { id: 'b', label: `B · ${clean(m[2])}`, path: '/?concept=b' },
+      { id: 'c', label: `C · ${clean(m[3])}`, path: '/?concept=c' },
+    ];
+  }
+  return [];
+}
+
+function deriveBenchQuestions(c, options){
+  const sr = c.showroom || {};
+  if (Array.isArray(sr.questions) && sr.questions.length) return sr.questions;
+  if (options.length >= 2) {
+    return [{
+      id: 'direction',
+      text: 'Which option felt closest to what you pictured?',
+      chips: [...options.map((o) => o.label), 'Mix of two'],
+    }];
+  }
+  return [];
+}
+
+  const benchHTML = `<div class="sec">
+    <div class="sec-h">
+      <span class="sec-t">On Deck</span>
+      <span class="sec-n ${bench.length ? 'ok' : ''}">${bench.length} / ${lim.bench}</span>
+    </div>
+    ${!bench.length ? `<div class="quiet">On Deck is clear. Drop an idea above — verified swings land here ready to open live.</div>` : bench.map((c) => {
+      const shots = (c.shots || []).length;
+      const sr = c.showroom || {};
+      const ck = c.checkin || { pulse: '', answers: {}, note: '', reactions: [] };
+      const screenshots = Array.isArray(sr.screenshots) ? sr.screenshots : [];
+      const itchText = sr.itch || '';
+      const swingText = sr.swing || c.bet || c.whatChanged || '—';
+      const firstClicks = Array.isArray(sr.firstClicks) && sr.firstClicks.length
+        ? sr.firstClicks
+        : (c.tryIt ? [c.tryIt] : []);
+      const weakestText = sr.weakestSpot || c.weakest || '—';
+      const options = deriveBenchOptions(c);
+      const questions = deriveBenchQuestions(c, options);
+      const reactions = Array.isArray(ck.reactions) ? ck.reactions : [];
+      const pushSt = btnStateAttrs('hpush:' + c.id, 'Push this forward');
+      const chopSt = btnStateAttrs('hchop:' + c.id, 'Bring to Floor');
+      const pullSt = btnStateAttrs('hpull:' + c.id, 'Build for real');
+      const parkSt = btnStateAttrs('hpark:' + c.id, 'Park');
+      const liveLabel = c.liveKind === 'read' ? 'Open Craft View' : (options.length ? 'Open Full Preview' : 'Open Live Preview');
+      const liveHref = benchLiveUrl(c);
+      const dot = c.liveKind === 'web'
+        ? (c.liveUp ? `<span class="h-live-dot" title="On Deck live"></span>` : `<span class="h-offline-dot" title="Auto-boots on open"></span>`)
+        : '';
+      const stripHTML = screenshots.length ? `<div class="h-shots-strip">${screenshots.map((f) => {
+        const src = `/api/hopper/media/${encodeURIComponent(c.id)}/${encodeURIComponent(f)}`;
+        return `<img class="h-shot-thumb" src="${src}" alt="${esc(c.id)} screenshot" loading="lazy" onclick="openHopperLightbox('${esc(src)}','${esc(c.id + ' · ' + f)}')">`;
+      }).join('')}</div>` : '';
+
+      const optionsHTML = options.length
+        ? options.map((o) => `<a class="h-opt-btn" href="${esc(benchOptionUrl(liveHref, o.path))}" target="_blank" rel="noopener"><span>${esc(o.label)}</span><span class="h-opt-arrow">↗</span></a>`).join('')
+        : '';
+
+      const pulses = [
+        { id: 'on-track', label: 'On track', cls: 'p-track' },
+        { id: 'needs-twist', label: 'Close, needs a twist', cls: 'p-twist' },
+        { id: 'missed', label: 'Missed the mark', cls: 'p-missed' },
+      ];
+      const hasSavedCheckin = Boolean(ck.pulse || Object.keys(ck.answers || {}).length || ck.note || reactions.length);
+
+      const questionsHTML = questions.map((q) => {
+        const picked = (ck.answers || {})[q.id] || '';
+        return `<div class="h-q-block" data-ci-q="${esc(q.id)}">
+          <div class="h-q-text">${esc(q.text)}</div>
+          <div class="h-chip-row">
+            ${(q.chips || []).map((ch) => `<button type="button" class="h-ci-chip${picked === ch ? ' on' : ''}" data-ci-card="${esc(c.id)}" data-ci-qid="${esc(q.id)}" data-ci-val="${esc(ch)}" onclick="hopperCheckinAnswer('${esc(c.id)}','${esc(q.id)}',this.dataset.ciVal)">${esc(ch)}</button>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+
+      const reactsHTML = reactions.length ? `<div class="h-react-list" data-ci-reacts="${esc(c.id)}">
+        <div class="h-ci-lbl">Pinned from live preview (M tab)</div>
+        ${reactions.map((r) => `<div class="h-react-pill${r.kind === 'note' ? ' is-note' : ''}">
+          <span>${r.kind === 'love' ? '♥' : '💬'}</span>
+          <span class="h-react-scr">${esc(r.screen || 'Screen')}</span>
+          ${r.text ? `<span class="h-react-txt">${esc(r.text)}</span>` : `<span class="h-react-txt">Loved this screen</span>`}
+          <button type="button" class="h-react-x" title="Remove" onclick="hopperRemoveReaction('${esc(c.id)}','${esc(r.id)}')">×</button>
+        </div>`).join('')}
+      </div>` : '';
+
+      return `<div class="h-card bench-card" data-hopper-card="${esc(c.id)}">
+        <div class="h-top">
+          ${c.benchSlot ? `<span class="h-tag slot">Slot ${esc(c.benchSlot)}</span>` : ''}
+          <span class="h-id">${esc(c.id)}</span>
+          <span class="h-tag shot">${shots} shot${shots === 1 ? '' : 's'}</span>
+          <span class="card-right">${ago(c.updated || c.at)}</span>
+        </div>
+        <div class="h-title">${esc(c.drop)}</div>
+        <div class="h-caretaker-summary">${esc(swingText)}</div>
+        ${stripHTML}
+        <div class="h-preview-row">
+          <a class="h-opt-btn h-open-live" href="${esc(liveHref)}" target="_blank" rel="noopener">${dot}<span>${liveLabel}</span><span class="h-opt-arrow">↗</span></a>
+          ${optionsHTML}
+        </div>
+        <div class="h-checkin" data-checkin-card="${esc(c.id)}">
+          <div class="h-ci-head">
+            <span class="h-ci-who"><img class="h-ci-ava" src="/hub/faces/lead.svg" alt="Caretaker" onerror="this.style.display='none'"><span>Caretaker Check-In</span></span>
+            <span class="h-ci-saved" data-ci-status="${esc(c.id)}">${hasSavedCheckin ? 'Saved ✓' : 'Tap to steer'}</span>
+          </div>
+          <div>
+            <div class="h-ci-lbl">Gut pulse</div>
+            <div class="h-pulse-row">
+              ${pulses.map((p) => `<button type="button" class="h-pulse-btn ${p.cls}${ck.pulse === p.id ? ' on' : ''}" data-pulse="${p.id}" onclick="hopperCheckinPulse('${esc(c.id)}','${p.id}')">${p.label}</button>`).join('')}
+            </div>
+          </div>
+          ${questionsHTML}
+          ${reactsHTML}
+          <div class="h-ci-note-row">
+            <textarea class="h-ci-note" data-ci-note="${esc(c.id)}" rows="1" placeholder="Anything else for me?" autocomplete="off">${esc(ck.note || '')}</textarea>
+          </div>
+        </div>
+        <details class="h-weak-det">
+          <summary>Build details &amp; weakest spot</summary>
+          <div class="h-det-stack">
+            ${(c.drop || '').length > 160 ? `<div class="h-box"><div class="h-lbl">Full Drop</div><div class="h-val">${esc(c.drop)}</div></div>` : ''}
+            ${itchText ? `<div class="h-box itch"><div class="h-lbl">The Itch</div><div class="h-val">${esc(itchText)}</div></div>` : ''}
+            <div class="h-box bet"><div class="h-lbl">Our Swing</div><div class="h-val">${esc(swingText)}</div></div>
+            ${firstClicks.length ? `<div class="h-box clicks"><div class="h-lbl">Try First</div><ul class="h-clicks-list">${firstClicks.map((cl) => `<li>${esc(cl)}</li>`).join('')}</ul></div>` : ''}
+            <div class="h-box weak"><div class="h-lbl">Weakest Spot</div><div class="h-val">${esc(weakestText)}</div></div>
+          </div>
+        </details>
+        <div class="h-next-moves">
+          <button type="button" class="h-move-btn h-move-push${pushSt.cls}" data-push-id="${esc(c.id)}"${pushSt.dis} onclick="hopperPush('${esc(c.id)}', this)">${pushSt.html}</button>
+          <button type="button" class="h-move-btn h-move-floor h-chop-btn${chopSt.cls}" data-chop-id="${esc(c.id)}"${chopSt.dis} onclick="hopperChop('${esc(c.id)}', this)">${chopSt.html}</button>
+          <button type="button" class="h-move-btn h-move-real${pullSt.cls}" data-real-id="${esc(c.id)}"${pullSt.dis} onclick="hopperPull('${esc(c.id)}', '${esc(c.build || '')}', this)">${pullSt.html}</button>
+        </div>
+        <div class="h-quiet-row">
+          <span class="h-quiet-hint">Tap M inside the live preview to pin notes</span>
+          <div class="h-quiet-acts">
+            <button type="button" class="h-quiet-link${parkSt.cls}" data-park-bench="${esc(c.id)}"${parkSt.dis} onclick="hopperPark('${esc(c.id)}', this)">${parkSt.html}</button>
+            <button type="button" class="h-quiet-link is-scrap" data-scrap-bench="${esc(c.id)}" onclick="openHopperNuke('${esc(c.id)}')">Scrap</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  const runningHTML = `<div class="sec">
+    <div class="sec-h">
+      <span class="sec-t">Running</span>
+      <span class="sec-n ${running.length ? 'hot' : ''}">${running.length} / ${lim.running}</span>
+    </div>
+    ${!running.length ? `<div class="quiet">Nothing running right now.</div>` : running.map((c) => {
+      const maxShots = lim.shots + (c.extraShots || 0);
+      const taken = (c.shots || []).length;
+      const isFlying = (c.shots || []).some((s) => s.status === 'flying');
+      const steerSt = btnStateAttrs('hsteer:' + c.id, 'Steer');
+      return `<div class="h-card run-card" data-hopper-card="${esc(c.id)}">
+        <div class="h-top">
+          <span class="h-id">${esc(c.id)}</span>
+          <span class="h-tag shot">Shot ${taken}/${maxShots}</span>
+          ${isFlying ? `<span class="working">flying</span>` : ''}
+          ${c.mode ? `<span class="h-tag mode">${esc(c.mode)}</span>` : ''}
+          ${c.run && c.run !== c.mode ? `<span class="h-tag">${esc(c.run)}</span>` : ''}
+          <span class="card-right">${ago(c.updated || c.at)}</span>
+        </div>
+        <div class="h-title">${esc(c.drop)}</div>
+        <div class="h-box hard"><div class="h-lbl">The Hard Part</div><div class="h-val">${esc(c.hard || 'Framing…')}</div></div>
+        ${c.brief ? `<div class="h-steer-prev"><b>Next steer:</b> ${esc(c.brief)}</div>` : ''}
+        <div class="h-steer-row">
+          <textarea class="h-steer-in" data-steer-id="${esc(c.id)}" rows="1" placeholder="Optional steer for next shot…" autocomplete="off"></textarea>
+          <button class="btn${steerSt.cls}"${steerSt.dis} onclick="hopperSteer('${esc(c.id)}', this)">${steerSt.html}</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  const renderQueueItem = (c) => {
+    const rnSt = btnStateAttrs('hrunnow:' + c.id, 'Run Now');
+    const pkSt = btnStateAttrs('hpark:' + c.id, 'Park');
+    const clSt = btnStateAttrs('hclear:' + c.id, 'Clear');
+    const requested = Boolean(c.runNowAt || c.runNowRequested);
+    return `<div class="h-qitem ${(c.from === 'you' || c.from === 'user') ? 'is-you' : 'is-agent'}" data-hopper-q="${esc(c.id)}">
+      <div class="h-qdrop">${esc(c.drop)}</div>
+      <div class="h-qmeta">
+        <span class="h-id">${esc(c.id)}</span>
+        ${c.hint ? `<span class="h-tag hint">${esc(HINT_LABELS[c.hint] || c.hint)}</span>` : ''}
+        ${c.hard ? `<span><b>Hard part:</b> ${esc(c.hard)}</span>` : `<span>Queued for framing</span>`}
+        ${c.mode ? `<span class="h-tag mode">${esc(c.mode)}</span>` : ''}
+        ${c.run && c.run !== c.mode ? `<span class="h-tag">${esc(c.run)}</span>` : ''}
+        <span style="margin-left:auto">${ago(c.at)}</span>
+      </div>
+      ${c.brief ? `<div class="h-steer-prev"><b>Steer:</b> ${esc(c.brief)}</div>` : ''}
+      <div class="h-qsteer-row">
+        ${requested
+          ? `<span class="h-tag steer">Run Now · skipping settle</span>`
+          : `<span class="h-tag mode">${c.hard ? 'Framed · queued' : 'Queued · 60s settle'}</span>`}
+        <div class="h-q-btns">
+          <button class="btn ghost h-q-act${pkSt.cls}" data-park-q="${esc(c.id)}"${pkSt.dis} onclick="hopperPark('${esc(c.id)}', this)">${pkSt.html}</button>
+          <button class="btn danger h-q-act${clSt.cls}" data-clear-q="${esc(c.id)}"${clSt.dis} onclick="hopperClearQueued('${esc(c.id)}', this)">${clSt.html}</button>
+          ${requested ? '' : `<button class="btn primary h-run-now${rnSt.cls}" data-run-now="${esc(c.id)}"${rnSt.dis} onclick="hopperRunNow('${esc(c.id)}', this)">${rnSt.html}</button>`}
+        </div>
+      </div>
+    </div>`;
+  };
+
+  const queueHTML = `<div class="sec">
+    <div class="sec-h"><span class="sec-t">Queue</span><span class="sec-n">${queue.length}</span></div>
+    ${!queue.length ? `<div class="quiet">Queue is empty.</div>` : `
+      ${yourQueue.length ? `<div class="h-subh"><span class="dot green"></span>Your Drops (${yourQueue.length})</div>${yourQueue.map(renderQueueItem).join('')}` : ''}
+      ${agentQueue.length ? `<div class="h-subh"><span class="dot violet"></span>Agent-Spotted (${agentQueue.length})</div>${agentQueue.map(renderQueueItem).join('')}` : ''}
+    `}
+  </div>`;
+
+  const parkedHTML = parked.length ? `<div class="sec">
+    <button class="h-grave-btn" id="hParkedToggle" onclick="state.parkedOpen=!state.parkedOpen;renderLeft()">
+      <span>Parked (${parked.length})</span>
+      <span>${state.parkedOpen ? '▾ Hide' : '▸ Show'}</span>
+    </button>
+    ${state.parkedOpen ? `<div class="h-grave-list">
+      ${parked.map((c) => {
+        const clSt = btnStateAttrs('hclear:' + c.id, 'Clear');
+        return `<div class="h-qitem" data-hopper-parked="${esc(c.id)}">
+          <div class="h-qdrop"><span class="h-id" style="margin-right:6px">${esc(c.id)}</span>${esc(c.drop)}</div>
+          ${c.parked?.why ? `<div class="h-gend">${esc(c.parked.why)}</div>` : ''}
+          <div class="h-qsteer-row">
+            <span class="h-tag mode">Parked ${ago(c.parked?.at || c.updated || c.at)}</span>
+            <div class="h-q-btns">
+              <button class="btn ghost h-q-act" onclick="openHopperAgain('${esc(c.id)}')">One More Shot</button>
+              <button class="btn danger h-q-act${clSt.cls}" data-clear-parked="${esc(c.id)}"${clSt.dis} onclick="hopperClearQueued('${esc(c.id)}', this)">${clSt.html}</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+  </div>` : '';
+
+  const graveyardHTML = `<div class="sec">
+    <button class="h-grave-btn" id="hGraveToggle" onclick="state.graveOpen=!state.graveOpen;renderLeft()">
+      <span>Graveyard (${graveyard.length})</span>
+      <span>${state.graveOpen ? '▾ Hide' : '▸ Show'}</span>
+    </button>
+    ${state.graveOpen ? `<div class="h-grave-list">
+      ${!graveyard.length ? `<div class="quiet" style="padding:10px 4px">Nothing nuked yet.</div>` : graveyard.map((c) => `<div class="h-gitem">
+        <div class="h-gdrop"><span class="h-id" style="margin-right:6px">${esc(c.id)}</span>${esc(c.drop)}</div>
+        <div class="h-gend">${esc(c.ended || 'Ended')}</div>
+      </div>`).join('')}
+    </div>` : ''}
+  </div>`;
+
+  const pb = h.playbook || {
+    items: [
+      { title: 'Name the itch, not a spec', body: 'What feels annoying or what 3-second moment you wish you had. Knowing the *why* lets your AI pit 2–3 real angles against each other.' },
+      { title: "Where you'll hold it", body: '*Thumb at work · Desktop at night · Inside Floor/Schedule · Not sure yet.*' },
+      { title: 'Pick your swing style', body: '*Explore angles (2–3 wild contenders) · Upgrade ours · Prototype · Deep scout.*' },
+      { title: 'Any gut "don\'t"', body: 'One quick line like *"don\'t make it feel like homework"* or *"keep it dead simple."*' },
+    ],
+    note: 'Raw one-line voice dumps from work are always enough — never hold back a spark.',
+  };
+  const pbInline = (s = '') => esc(s).replace(/\*([^*]+)\*/g, '<i>$1</i>');
+  const pbDraft = state.playbookEditing && state.playbookDraft ? state.playbookDraft : pb;
+  const pbSaveSt = btnStateAttrs('hplaybook', 'Save');
+  const playbookHTML = `<div class="sec">
+    <div class="h-pb-card" id="hPlaybookCard">
+      <div class="h-pb-head">
+        <span class="h-pb-title">Drop Framework · Quick Reference</span>
+        ${state.playbookEditing
+          ? ''
+          : `<button type="button" class="tlink" id="hPlaybookEditBtn" onclick="openPlaybookEditor()">Edit</button>`}
+      </div>
+      ${state.playbookEditing ? `<div id="hPlaybookEditor">
+        ${(pbDraft.items || []).map((it, idx) => `<div class="h-pb-edit-row" data-pb-idx="${idx}">
+          <div class="h-pb-edit-top">
+            <span class="h-pb-num">${idx + 1}</span>
+            <input type="text" class="h-pb-edit-in" data-pb-title="${idx}" value="${esc(it.title || '')}" placeholder="Point title…" oninput="syncPlaybookDraft()">
+            ${(pbDraft.items || []).length > 1 ? `<button type="button" class="btn icon-close" title="Remove point" onclick="removePlaybookPoint(${idx})">✕</button>` : ''}
+          </div>
+          <textarea class="h-pb-edit-ta" data-pb-body="${idx}" rows="2" placeholder="Guidance…" oninput="syncPlaybookDraft()">${esc(it.body || '')}</textarea>
+        </div>`).join('')}
+        <div class="h-field" style="margin-top:8px;margin-bottom:10px">
+          <label for="hPlaybookNoteIn">Footer note</label>
+          <input id="hPlaybookNoteIn" type="text" class="h-pb-edit-in" value="${esc(pbDraft.note || '')}" placeholder="Closing note…" oninput="syncPlaybookDraft()">
+        </div>
+        <div class="actions" style="margin-top:10px">
+          <button type="button" class="btn ghost" onclick="addPlaybookPoint()">+ Add point</button>
+          <button type="button" class="btn ghost" style="margin-left:auto" onclick="cancelPlaybookEditor()">Cancel</button>
+          <button type="button" class="btn primary${pbSaveSt.cls}" id="hPlaybookSaveBtn"${pbSaveSt.dis} onclick="savePlaybook(this)">${pbSaveSt.html}</button>
+        </div>
+      </div>` : `<div class="h-pb-list">
+        ${(pb.items || []).map((it, idx) => `<div class="h-pb-item">
+          <span class="h-pb-num">${idx + 1}</span>
+          <div>${it.title ? `<span class="h-pb-lead">${esc(it.title)}</span>${it.body ? ' — ' : ''}` : ''}${pbInline(it.body || '')}</div>
+        </div>`).join('')}
+      </div>
+      ${pb.note ? `<div class="h-pb-foot">${pbInline(pb.note)}</div>` : ''}`}
+    </div>
+  </div>`;
+
+  return `${caretakerBarHTML}${haltedHTML}${benchHTML}${runningHTML}${queueHTML}${parkedHTML}${graveyardHTML}${playbookHTML}`;
+}
+
+function hopperViewHTML(){
+  return `${hopperDropBarHTML()}<div id="hopperBody">${hopperBodyHTML()}</div>`;
+}
+
+function composerHTML(){
+  const fl = state.flagging; if (!fl) return '';
+  const targets = [
+    {id:'antigravity', label:'Breaker (run now)'},
+    {id:'builder', label:'Builder'},
+    {id:'you', label:'Note for me'},
+  ];
+  const st = btnStateAttrs('submitFlag', 'Send flag');
+  return `<div class="composer">
+    <textarea id="flagNote" placeholder="Note (optional — Enter to send)"></textarea>
+    <div class="crow"><span class="clbl">To</span>${targets.map(t=>`<button class="seg ${fl.for===t.id?'on':''}" onclick="state.flagging.for='${t.id}';state.flagging.send=${t.id==='antigravity'};renderLeft()">${t.label}</button>`).join('')}</div>
+    <div class="crow"><span class="clbl">Kind</span>${['Review','Fix','Skill check','Clean up'].map(t=>`<button class="seg ${fl.tag===t?'on':''}" onclick="state.flagging.tag='${t}';renderLeft()">${t}</button>`).join('')}
+      <button class="btn ghost" style="margin-left:auto" onclick="state.flagging=null;renderLeft()">Cancel</button>
+      <button class="btn primary${st.cls}"${st.dis} onclick="submitFlag(this)">${st.html}</button>
+    </div></div>`;
+}
+
+function repoHeaderHTML(relPath){
+  const parts = relPath.split('/');
+  const last = parts.pop();
+  const crumbs = [`<button class="crumb-btn" onclick="select(null)">Foundry</button>`];
+  let acc = '';
+  for (const seg of parts) {
+    acc = acc ? acc + '/' + seg : seg;
+    crumbs.push(`<span class="crumb-sep">/</span><button class="crumb-btn" data-reveal="${esc(acc)}">${esc(seg)}</button>`);
+  }
+  crumbs.push(`<span class="crumb-sep">/</span>`);
+  return `<div class="repo-hdr">
+    <div class="crumbs">${crumbs.join('')}</div>
+    <div class="repo-title-row"><span class="repo-title">${esc(last)}</span></div>
+  </div>`;
+}
+
+function inspectorHTML(){
+  const f = state.focus; if (!f) return '';
+  const parts = f.path.split('/'); const last = parts.pop();
+  const pinned = state.board.pins.some(x=>x.path===f.path);
+  let stat = '', diffHtml = '', repoBtns = '', dangerZone = '';
+  if (f.repo){
+    const r = f.repo, bits = [];
+    if (r.room==='lab'){
+      const vs = r.vs;
+      if (vs.state==='ahead'){
+        bits.push(`${vs.ahead} update${vs.ahead>1?'s':''} ahead of core`);
+        if (vs.commits?.length) diffHtml = `<div class="summary">${vs.commits.map(c=>`<div class="summary-item">${esc(c.text)} <span class="card-sub">· ${esc(c.by)} ${ago(c.at)}</span></div>`).join('')}</div>`;
+        const pSt = btnStateAttrs('promote:' + last, 'Move to core');
+        const cSt = btnStateAttrs('check:' + f.path + ':antigravity', 'Verify on bench');
+        const hasCase = (state.board.attention || []).some(x => x.type === 'promote' && x.lab === last);
+        if (hasCase) repoBtns += `<button class="btn primary${pSt.cls}"${pSt.dis} onclick="promote('${esc(last)}', this)">${pSt.html}</button>`;
+        else bits.push('no case made for core');
+        repoBtns += `<button class="btn${cSt.cls}"${cSt.dis} onclick="checkUpdate('${esc(f.path)}','${esc(vs.title)}','antigravity', this)">${cSt.html}</button>`;
+      } else if (vs.state==='same') bits.push(`In core & synced`);
+      else if (vs.state==='no-core') {
+        bits.push(`Lab only`);
+        const pSt = btnStateAttrs('promote:' + last, 'Start core');
+        repoBtns += `<button class="btn primary${pSt.cls}"${pSt.dis} onclick="promote('${esc(last)}', this)">${pSt.html}</button>`;
+      }
+      else if (vs.state==='diverged') bits.push(`Split from core`);
+      if (r.changes) bits.push(`${r.changes} unsaved`);
+      if (vs?.core?.rel) repoBtns += `<button class="btn ghost" onclick="reveal('${esc(vs.core.rel)}')">Open core</button>`;
+    } else if (r.room==='core'){
+      bits.push(`Core${r.version?` · ${esc(r.version)}`:''}`);
+      if (r.changes) bits.push(`${r.changes} hand edit(s)`);
+      if (r.canRollback) {
+        const rbSt = btnStateAttrs('rollback:' + last, `Roll back core/${last}`);
+        dangerZone = `<div class="danger-zone">
+          <div class="dz-text">
+            <div class="dz-title">Undo last move to core</div>
+            <div class="dz-sub">Separated from regular controls so a slipped thumb can't trigger it.</div>
+          </div>
+          <button class="btn danger${rbSt.cls}"${rbSt.dis} onclick="openRollbackConfirm('${esc(last)}')">${rbSt.html}</button>
+        </div>`;
+      }
+    }
+    stat = `<div class="ins-stat">${bits.join(' · ')}</div>`;
+  }
+  let extra = '';
+  if (f.text != null) extra = `<div class="preview">${/\.md$/i.test(f.path)?`<div class="md">${md(f.text)}</div>`:`<pre>${esc(f.text)}</pre>`}</div>`;
+  else if (f.image) extra = `<div class="preview"><img src="/api/raw?path=${encodeURIComponent(f.path)}"></div>`;
+  else if (f.readme) extra = `<div class="preview"><div class="preview-hdr"><span class="card-sub">${esc(f.readme.name)}</span><button class="tlink" onclick="reveal('${esc(f.path + '/' + f.readme.name)}')">Open full</button></div><div class="md">${md(f.readme.text)}</div></div>`;
+
+  const pinSt = btnStateAttrs('pin:' + f.path, pinned ? 'Unpin' : 'Pin focus');
+  return `<div class="inspector">
+    <div class="ins-head">
+      ${repoHeaderHTML(f.path)}
+      <button class="btn icon-close" style="margin-left:auto" onclick="select(null)" title="Close">✕</button>
+    </div>
+    ${stat}${diffHtml}
+    <div class="actions">
+      ${repoBtns}
+      <button class="btn${pinSt.cls}"${pinSt.dis} onclick="togglePin('${esc(f.path)}', this)">${pinSt.html}</button>
+      ${state.flagging?'':`<button class="btn" onclick="state.flagging={for:'antigravity',tag:'Review',send:true};renderLeft();setTimeout(()=>$('#flagNote').focus(),20)">Flag</button>`}
+      <button class="btn ghost desktop-only" onclick="api('/api/open',{path:'${esc(f.path)}'}).then(()=>toast('Opened in Explorer','ok'))">Explorer</button>
+      <button class="btn ghost" onclick="copyPath('${esc(f.path)}')">Copy path</button>
+    </div>
+    ${composerHTML()}${dangerZone}${extra}
+  </div>`;
+}
+
+function glanceHeroHTML(b){
+  const att = b.attention || [];
+  const standings = b.standings || [];
+  const blocks = b.blocks || [];
+  const moves = att.filter(x => x.type === 'promote' || x.type === 'start-core').length;
+  const flags = att.filter(x => x.type === 'flag').length;
+  const alerts = att.filter(x => x.type === 'diverged' || x.type === 'core-edited').length;
+  const inCore = standings.filter(s => s.state === 'same').length;
+  if (!att.length) {
+    return `<div class="glance clear">
+      <div class="glance-ico">✓</div>
+      <div class="glance-body">
+        <div class="glance-title">All clear — nothing needs you</div>
+        <div class="glance-sub">${standings.length} projects tracked · ${inCore} synced in core${blocks.length ? ` · ${blocks.length} blocked` : ''}</div>
+        ${isPhone() ? `<div class="glance-links">
+          <button class="tlink" onclick="setTab('progress')">Check progress →</button>
+          <button class="tlink" onclick="setTab('activity')">See activity →</button>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }
+  const bits = [];
+  if (moves) bits.push(`${moves} proposed for core`);
+  if (flags) bits.push(`${flags} open flag${flags>1?'s':''}`);
+  if (alerts) bits.push(`${alerts} warning${alerts>1?'s':''}`);
+  if (blocks.length) bits.push(`${blocks.length} blocked`);
+  return `<div class="glance needs">
+    <div class="glance-ico">${att.length}</div>
+    <div class="glance-body">
+      <div class="glance-title">${att.length === 1 ? '1 thing needs you' : `${att.length} things need you`}</div>
+      <div class="glance-sub">${bits.join(' · ')}</div>
+    </div>
+  </div>`;
+}
+
+function attentionHTML(items){
+  if (!items.length) return `<div class="quiet">Nothing waiting right now.</div>`;
+  return items.map(it=>{
+    if (it.type==='promote'){
+      const who = it.commits?.[0]?.by || '';
+      const when = it.commits?.[0]?.at ? ago(it.commits[0].at) : '';
+      const commits = (it.commits||[]).slice(0,3).map(c=>`<div class="summary-item">${esc(c.text)}</div>`).join('');
+      const files = (it.files||[]).slice(0,8).map(f=>{
+        const target = `${it.labRel}/${f.file}`;
+        const sym = f.code==='A'?'+':f.code==='D'?'−':'~';
+        return `<span class="fchip" data-reveal="${esc(target)}"><span class="op ${f.code}">${sym}</span>${esc(f.file)}</span>`;
+      }).join('');
+      const pSt = btnStateAttrs('promote:' + it.lab, 'Move to core');
+      const rSt = btnStateAttrs('check:' + it.labRel + ':antigravity', 'Verify on bench');
+      const oSt = btnStateAttrs('check:' + it.labRel + ':odie', 'Ask Builder');
+      const lSt = btnStateAttrs('dismiss:' + it.lab, 'Later');
+      return `<div class="card">
+        <div class="card-top">
+          <span class="dot green"></span>
+          <span class="card-title">${esc(it.title)}</span>
+          <span class="card-sub">${esc(it.labRel)} → ${esc(it.core)}</span>
+          <span class="card-right">${who?`${esc(who)} · `:''}${when}</span>
+        </div>
+        ${it.proposal?`<div class="summary"><div class="summary-item"><b>${esc(it.proposal.by)} makes the case:</b> ${esc(it.proposal.why)}</div>${it.proposal.lived?`<div class="summary-item"><b>Lived in the lab:</b> ${esc(it.proposal.lived)}</div>`:''}${it.proposal.restarts?`<div class="summary-item"><b>Restarts:</b> ${esc(it.proposal.restarts)}</div>`:''}</div>`:''}
+        ${commits?`<div class="summary">${commits}</div>`:''}
+        ${files?`<div class="files">${files}</div>`:''}
+        <div class="actions">
+          <button class="btn primary${pSt.cls}"${pSt.dis} onclick="promote('${esc(it.lab)}', this)">${pSt.html}</button>
+          <button class="btn${rSt.cls}"${rSt.dis} onclick="checkUpdate('${esc(it.labRel)}','${esc(it.title)}','antigravity', this)">${rSt.html}</button>
+          <button class="btn${oSt.cls}"${oSt.dis} onclick="checkUpdate('${esc(it.labRel)}','${esc(it.title)}','builder', this)">${oSt.html}</button>
+          <button class="btn ghost later-btn${lSt.cls}"${lSt.dis} style="margin-left:auto" onclick="dismissPromote('${esc(it.lab)}','${esc(it.head)}', this)">${lSt.html}</button>
+        </div>
+      </div>`;
+    }
+    if (it.type==='start-core'){
+      const pSt = btnStateAttrs('promote:' + it.lab, 'Start core');
+      const lSt = btnStateAttrs('dismiss:' + it.lab, 'Later');
+      return `<div class="card">
+        <div class="card-top">
+          <span class="dot violet"></span>
+          <span class="card-title">${esc(it.title)}</span>
+          <span class="card-sub">${esc(it.labRel)} · lab only, no trusted copy yet</span>
+          <span class="card-right">${it.at?ago(it.at):''}</span>
+        </div>
+        <div class="summary"><div class="summary-item">Start core makes the first trusted copy of this project. After that it changes only when you click Move to core.</div></div>
+        <div class="actions">
+          <button class="btn primary${pSt.cls}"${pSt.dis} onclick="promote('${esc(it.lab)}', this)">${pSt.html}</button>
+          <button class="btn ghost later-btn${lSt.cls}"${lSt.dis} style="margin-left:auto" onclick="dismissPromote('${esc(it.lab)}','${esc(it.head)}', this)">${lSt.html}</button>
+        </div>
+      </div>`;
+    }
+    if (it.type==='flag'){
+      const f = it.flag, a = f.agent, target = f.for || 'antigravity';
+      const dotCls = a?.state==='answered' ? 'green' : a?.state==='working' ? 'sky' : a?.state==='failed' ? 'red' : 'amber';
+      const statusTxt = a?.state==='working' ? `<span class="working">working</span>` : a?.state==='answered' ? `<span style="color:var(--green);font-size:12px">answered</span>` : a?.state==='failed' ? `<span style="color:var(--red);font-size:12px">stuck</span>` : '';
+      const runSt = btnStateAttrs('route:' + f.id + ':antigravity', a ? 'Re-run check' : 'Run check');
+      const odieSt = btnStateAttrs('route:' + f.id + ':odie', 'Hand to Builder');
+      const doneSt = btnStateAttrs('done:' + f.id, 'Done');
+      return `<div class="card">
+        <div class="card-top">
+          <span class="dot ${dotCls}"></span>
+          <span class="card-title">${esc(f.tag)}</span>
+          <span class="pclick" data-reveal="${esc(f.path)}">${esc(f.path || 'Foundry')}</span>
+          <span class="route">${esc(cap(f.by))} → <span class="to-${esc(target)}">${esc(cap(target))}</span></span>
+          <span class="card-right">${statusTxt}${ago(f.at)}</span>
+        </div>
+        ${f.note?`<div class="summary">${esc(f.note)}</div>`:''}
+        ${a?.answer?`<div class="answer md">${md(a.answer)}</div>`:''}
+        <div class="actions">
+          ${state.board.agy && a?.state!=='working' ? `<button class="btn ${target==='antigravity'&&!a?'primary':''}${runSt.cls}"${runSt.dis} onclick="routeFlag('${esc(f.id)}','antigravity',true, this)">${runSt.html}</button>`:''}
+          ${target!=='builder' ? `<button class="btn${odieSt.cls}"${odieSt.dis} onclick="routeFlag('${esc(f.id)}','builder',false, this)">${odieSt.html}</button>`:''}
+          <button class="btn ghost${doneSt.cls}"${doneSt.dis} onclick="doneFlag('${esc(f.id)}', this)">${doneSt.html}</button>
+          <button class="btn ghost later-btn" style="margin-left:auto" onclick="copyHandoff('${esc(f.id)}')">Copy</button>
+        </div>
+      </div>`;
+    }
+    if (it.type==='diverged') {
+      const fSt = btnStateAttrs('qflag:' + it.labRel + ':antigravity', 'Flag for Breaker');
+      const oSt = btnStateAttrs('qflag:' + it.labRel + ':odie', 'Hand to Builder');
+      return `<div class="card warn-card">
+        <div class="card-top"><span class="dot red"></span><span class="card-title">${esc(it.lab)}</span><span class="card-sub">lab and core split apart</span></div>
+        <div class="actions">
+          <button class="btn primary${fSt.cls}"${fSt.dis} onclick="quickFlag('${esc(it.labRel)}','Lab and core split apart — reconcile cleanly','Fix','antigravity',true, this)">${fSt.html}</button>
+          <button class="btn${oSt.cls}"${oSt.dis} onclick="quickFlag('${esc(it.labRel)}','Lab and core split apart — reconcile cleanly','Fix','builder',false, this)">${oSt.html}</button>
+        </div></div>`;
+    }
+    if (it.type==='core-edited') {
+      const fSt = btnStateAttrs('qflag:' + it.rel + ':antigravity', 'Flag for Breaker');
+      const oSt = btnStateAttrs('qflag:' + it.rel + ':odie', 'Hand to Builder');
+      return `<div class="card warn-card">
+        <div class="card-top"><span class="dot red"></span><span class="card-title">${esc(it.rel)}</span><span class="card-sub">${it.changes} hand edit(s) inside core</span></div>
+        <div class="actions">
+          <button class="btn primary${fSt.cls}"${fSt.dis} onclick="quickFlag('${esc(it.rel)}','Move hand edits from core into lab and restore core','Fix','antigravity',true, this)">${fSt.html}</button>
+          <button class="btn${oSt.cls}"${oSt.dis} onclick="quickFlag('${esc(it.rel)}','Move hand edits from core into lab and restore core','Fix','builder',false, this)">${oSt.html}</button>
+        </div></div>`;
+    }
+    return '';
+  }).join('');
+}
+
+function blocksHTML(blocks){
+  if (!blocks?.length) return '';
+  return `<div class="sec">
+    <div class="sec-h"><span class="sec-t">Blocked versions</span><span class="sec-n" style="color:var(--red);border-color:#54262a;background:#281416">${blocks.length}</span></div>
+    ${blocks.map(b => `<div class="card warn-card">
+      <div class="card-top">
+        <span class="dot red"></span>
+        <span class="card-title">${esc(b.name)}</span>
+        <span class="card-sub">${esc((b.commit||'').slice(0,7))}</span>
+        <span class="card-right">${ago(b.at)}</span>
+      </div>
+      ${b.why ? `<div class="summary">${esc(b.why)}</div>` : ''}
+      ${b.files?.length ? `<div class="files">${b.files.map(f=>`<span class="fchip">${esc(f)}</span>`).join('')}</div>` : ''}
+    </div>`).join('')}
+  </div>`;
+}
+
+function standingsHTML(list, blocks = []){
+  if (!list?.length) return '<div class="quiet">No projects yet.</div>';
+  const blockedNames = new Set((blocks || []).map(b => b.name));
+  return `<div class="standings">${list.map(s=>{
+    const isBlocked = blockedNames.has(s.name) || (s.coreRel && blockedNames.has(s.coreRel.replace(/^core\//,'')));
+    const dot = isBlocked || s.state==='core-edited'||s.state==='diverged' ? 'red' : s.state==='ahead' ? 'amber' : s.state==='same' ? 'green' : 'dim';
+    const st = isBlocked ? `<span class="st-state err">blocked</span>`
+      : s.state==='core-edited' ? `<span class="st-state err">edited core</span>`
+      : s.state==='diverged' ? `<span class="st-state err">split</span>`
+      : s.state==='ahead' ? `<span class="st-state ahead">+${s.ahead} ahead</span>`
+      : s.state==='same' ? `<span class="st-state ok">in core</span>`
+      : `<span class="st-state">lab</span>`;
+    return `<div class="st-row" data-reveal="${esc(s.rel)}">
+      <span class="dot ${dot}"></span>
+      <span class="st-name">${esc(s.name)}</span>
+      <span class="st-state-mob">${st}</span>
+      <span class="st-msg">${esc(s.lastText || '—')}</span>
+      <span class="st-meta">${st}<span>${s.lastBy?esc(s.lastBy.split(' ')[0])+' · ':''}${ago(s.lastAt)}</span>${s.changes ? `<span style="color:var(--sky)">${s.changes} unsaved</span>` : ''}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function kindLabel(k){
+  return ({ promote:'Moved', rollback:'Rolled back', flag:'Flag', 'flag-done':'Closed', backup:'Backup', 'backup-error':'Backup err', block:'Blocked', match:'Live Match', commit:'Saved', note:'Note', pin:'Pinned' })[k] || '';
+}
+
+function logHTML(list){
+  if (!list?.length) return `<div class="quiet">Nothing recent.</div>`;
+  return `<div class="log-list">${list.slice(0,35).map(a=>{
+    const kl = kindLabel(a.kind);
+    return `<div class="act">
+      <div class="t">${ago(a.at)}</div>
+      <div>
+        <span class="who">${esc(a.by||'')}</span>
+        ${kl ? `<span class="kind k-${esc(a.kind||'')}">${esc(kl)}</span>` : ''}
+        <span class="txt">${esc(a.text)}</span>
+        ${a.path ? `<span class="apath">${esc(a.path)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function fileViewHTML(){
+  const f = state.focus;
+  const pinned = state.board.pins.some(x=>x.path===f.path);
+  const isMd = /\.md$/i.test(f.path);
+  let body = '';
+  if (f.text != null) {
+    if (!f.text.trim()) body = `<div class="quiet">Empty file.</div>`;
+    else if (isMd && !state.rawMode) body = `<div class="fv-md">${md(f.text)}</div>`;
+    else body = `<pre>${esc(f.text)}</pre>`;
+  } else if (f.image) body = `<img src="/api/raw?path=${encodeURIComponent(f.path)}">`;
+  else if (f.binary) body = `<div class="quiet">Binary file.${!isPhone() ? ` <button class="tlink on" onclick="api('/api/open',{path:'${esc(f.path)}'})">Open in Explorer</button>` : ''}</div>`;
+  else if (f.tooBig) body = `<div class="quiet">Large file.${!isPhone() ? ` <button class="tlink on" onclick="api('/api/open',{path:'${esc(f.path)}'})">Open in Explorer</button>` : ''}</div>`;
+
+  const pinSt = btnStateAttrs('pin:' + f.path, pinned ? 'Unpin' : 'Pin focus');
+  return `<div class="file-view">
+    <div class="fv-top">
+      <div class="fv-row1">
+        ${repoHeaderHTML(f.path)}
+        <button class="btn icon-close" style="margin-left:auto" onclick="select(null)" title="Back (Esc)">✕</button>
+      </div>
+      <div class="fv-actions">
+        <button class="btn ghost" onclick="select(null)">← Back</button>
+        <button class="btn${pinSt.cls}"${pinSt.dis} onclick="togglePin('${esc(f.path)}', this)">${pinSt.html}</button>
+        ${state.flagging?'':`<button class="btn" onclick="state.flagging={for:'antigravity',tag:'Review',send:true};renderLeft();setTimeout(()=>$('#flagNote').focus(),20)">Flag</button>`}
+        ${isMd ? `<button class="btn ghost" onclick="state.rawMode=!state.rawMode;renderLeft()">${state.rawMode?'Formatted':'Raw'}</button>` : ''}
+        <button class="btn ghost desktop-only" onclick="api('/api/open',{path:'${esc(f.path)}'}).then(()=>toast('Opened in Explorer','ok'))">Explorer</button>
+        <button class="btn ghost" onclick="copyPath('${esc(f.path)}')">Copy path</button>
+      </div>
+    </div>
+    ${composerHTML()}
+    <div class="fv-body">${body}</div>
+  </div>`;
+}
+
+function usageSectionHTML(inCard = false){
+  const pools = state.usage?.pools || [];
+  if (!pools.length) return '';
+  const rows = pools.map(p => {
+    const [c1, c2, cg] = p.colors || ['#0f766e','#5eead4','rgba(94,234,212,0.35)'];
+    const has = p.pct !== null && p.pct !== undefined;
+    const isOpen = state.openPool === p.id;
+    const tip = [p.label, has ? `${p.pct}% left` : 'not connected', p.note || ''].filter(Boolean).join(' · ');
+    let det = '';
+    if (isOpen) {
+      const h5 = p.fiveHourPct !== null && p.fiveHourPct !== undefined;
+      const hw = p.weekPct !== null && p.weekPct !== undefined;
+      det = `<div class="u-det">
+        <div class="u-cols">
+          <div>
+            <div class="u-col-top"><span class="u-lbl">5-Hour Left</span><span class="u-val ${h5?'':'na'}">${h5?p.fiveHourPct+'%':'n/a'}</span></div>
+            ${barFillHTML(p.fiveHourPct, c1, c2, cg)}
+            <div class="u-sub">${esc(p.fiveHourReset || (h5 ? '' : 'no reading'))}</div>
+          </div>
+          <div>
+            <div class="u-col-top"><span class="u-lbl">Week Left</span><span class="u-val ${hw?'':'na'}">${hw?p.weekPct+'%':'n/a'}</span></div>
+            ${barFillHTML(p.weekPct, c1, c2, cg)}
+            <div class="u-sub">${esc(p.weekReset || (hw ? '' : 'no reading'))}</div>
+          </div>
+        </div>
+        ${p.note ? `<div class="u-note"><span>${esc(p.note)}</span><span>${p.updatedAt ? ago(p.updatedAt) : ''}</span></div>` : ''}
+      </div>`;
+    }
+    return `<div class="u-item">
+      <div class="u-row ${has?'':'off'}" title="${esc(tip)}" onclick="state.openPool=state.openPool==='${esc(p.id)}'?null:'${esc(p.id)}';renderUsage();if(isPhone())renderLeft()">
+        <span class="u-name">${esc(p.label)}</span>
+        ${barFillHTML(p.pct, c1, c2, cg)}
+        <span class="u-pct ${has?'':'na'}">${has ? p.pct + '%' : '—'}</span>
+      </div>
+      ${det}
+    </div>`;
+  }).join('');
+  const refreshBtn = inCard
+    ? `<button class="tlink" ${state.refreshingUsage?'disabled':''} onclick="refreshUsage()">${state.refreshingUsage?'Refreshing…':'↻ Refresh'}</button>`
+    : `<button class="hb" style="margin-left:auto${state.refreshingUsage?';opacity:.45;pointer-events:none':''}" title="Refresh usage (on-click)" onclick="refreshUsage()">↻</button>
+       <button class="hb" title="Edit usage-pools.json" onclick="api('/api/usage/open-config',{})">⚙</button>`;
+  if (inCard) {
+    return `<div class="sec">
+      <div class="sec-h"><span class="sec-t">Usage pools</span><span class="sec-r">${refreshBtn}</span></div>
+      <div class="usage-card"><div class="u-list">${rows}</div></div>
+    </div>`;
+  }
+  return `<div class="u-head"><span>Usage</span>${refreshBtn}</div><div class="u-list">${rows}</div>`;
+}
+
+function renderLeft(force = false){
+  const b = state.board; if (!b) return;
+  const leftEl = $('#left');
+  const mobile = isPhone();
+  const activeMode = mobile ? state.tab : (state.sel ? 'desk' : state.deskView);
+  const sameView = state.lastLeftSel === state.sel && state.lastTab === activeMode;
+  const isHopperView = !(state.focus && !state.focus.dir) && ((mobile && !state.sel && state.tab === 'hopper') || (!mobile && !state.sel && state.deskView === 'hopper'));
+
+  // Fast-path for Hopper view: NEVER recreate #hopperDropInput while staying on Hopper!
+  // Only update #hopperBody (and skip even that if typing inside a running steer or check-in note box).
+  if (sameView && isHopperView && $('#hopperBody')) {
+    const ae = document.activeElement;
+    if (!force && ((ae && (ae.classList?.contains('h-steer-in') || ae.classList?.contains('h-ci-note'))) || state.playbookEditing || (ae && ae.closest?.('#hPlaybookEditor')))) {
+      state.deferRender = true;
+      return;
+    }
+    state.deferRender = false;
+    const bodyEl = $('#hopperBody');
+    const keepSteers = new Map();
+    bodyEl.querySelectorAll('.h-steer-in[data-steer-id]').forEach((el) => { if (el.value) keepSteers.set(el.dataset.steerId, el.value); });
+    const keepCiNotes = new Map();
+    bodyEl.querySelectorAll('.h-ci-note[data-ci-note]').forEach((el) => { if (el.dataset.dirty === '1') keepCiNotes.set(el.dataset.ciNote, el.value); });
+    const nextBody = hopperBodyHTML();
+    if (nextBody !== state.lastHopperBodyHTML) {
+      state.lastHopperBodyHTML = nextBody;
+      bodyEl.innerHTML = nextBody;
+      for (const [sid, val] of keepSteers.entries()) {
+        const el = bodyEl.querySelector(`.h-steer-in[data-steer-id="${CSS.escape(sid)}"]`);
+        if (el) { el.value = val; autoGrow(el, 160); }
+      }
+      for (const [cid, val] of keepCiNotes.entries()) {
+        const el = bodyEl.querySelector(`.h-ci-note[data-ci-note="${CSS.escape(cid)}"]`);
+        if (el) { el.value = val; el.dataset.dirty = '1'; autoGrow(el, 140); }
+      }
+      wireHopperSteers(bodyEl);
+    }
+    const cntEl = document.querySelector('.desk-sw-cnt');
+    const benchN = state.hopper?.bench?.length || 0;
+    if (cntEl) cntEl.textContent = String(benchN);
+    return;
+  }
+
+  state.deferRender = false;
+  const keepLeftScroll = sameView ? leftEl.scrollTop : 0;
+  const keepPreviewScroll = sameView ? ($('.preview')?.scrollTop || 0) : 0;
+  const keepNote = $('#flagNote')?.value;
+  const keepQuickNote = $('#quickNoteInput')?.value;
+  const keepHopperDrop = $('#hopperDropInput')?.value;
+  const keepSteers = new Map();
+  document.querySelectorAll('.h-steer-in[data-steer-id]').forEach((el) => { if (el.value) keepSteers.set(el.dataset.steerId, el.value); });
+
+  let nextHTML = '';
+  if (state.focus && !state.focus.dir) {
+    nextHTML = fileViewHTML();
+  } else if (mobile && !state.sel) {
+    if (state.tab === 'hopper') {
+      nextHTML = hopperViewHTML();
+    } else if (state.tab === 'needs') {
+      nextHTML = `
+        ${glanceHeroHTML(b)}
+        <div class="sec">
+          <div class="sec-h">
+            <span class="sec-t">Needs you</span>
+            ${b.attention.length ? `<span class="sec-n hot">${b.attention.length}</span>` : `<span class="sec-n ok">0</span>`}
+          </div>
+          ${attentionHTML(b.attention)}
+        </div>
+        ${blocksHTML(b.blocks)}
+        ${b.pins.length ? `<div class="sec">
+          <div class="sec-h"><span class="sec-t">Current focus</span><span class="sec-n">${b.pins.length}</span></div>
+          <div class="focus-bar">${b.pins.map(p=>`<div class="pin-chip" data-reveal="${esc(p.path)}"><span class="dot violet"></span><span class="pn">${esc(p.path)}</span><button class="px" onclick="event.stopPropagation();togglePin('${esc(p.path)}')">×</button></div>`).join('')}</div>
+        </div>` : ''}
+      `;
+    } else if (state.tab === 'progress') {
+      const st = b.standings || [];
+      const synced = st.filter(s => s.state === 'same').length;
+      const ready = st.filter(s => s.state === 'ahead').length;
+      const blocked = (b.blocks || []).length;
+      nextHTML = `
+        <div class="sec">
+          <div class="sec-h"><span class="sec-t">Progress</span><span class="sec-n">${st.length}</span></div>
+          <div class="prog-pills">
+            <span class="ppill"><span class="dot green"></span>${synced} in core</span>
+            ${ready ? `<span class="ppill"><span class="dot amber"></span>${ready} ready</span>` : ''}
+            ${blocked ? `<span class="ppill"><span class="dot red"></span>${blocked} blocked</span>` : ''}
+          </div>
+          ${standingsHTML(st, b.blocks)}
+        </div>
+        ${blocksHTML(b.blocks)}
+        ${usageSectionHTML(true)}
+      `;
+    } else if (state.tab === 'activity') {
+      const nSt = btnStateAttrs('quickNote', 'Post');
+      nextHTML = `
+        <div class="sec">
+          <div class="sec-h"><span class="sec-t">Activity</span><span class="sec-r"><button class="tlink" onclick="copyContext()">Copy context</button></span></div>
+          <div class="note-box">
+            <input id="quickNoteInput" type="text" placeholder="Drop a quick note on the board…">
+            <button class="btn primary${nSt.cls}"${nSt.dis} style="min-width:86px;white-space:nowrap;flex:none" onclick="postQuickNote(this)">${nSt.html}</button>
+          </div>
+          ${logHTML(b.activity)}
+        </div>
+      `;
+    }
+  } else if (!mobile && !state.sel && state.deskView === 'hopper') {
+    nextHTML = `${deskSwitchHTML()}${hopperViewHTML()}`;
+  } else {
+    const att = state.sel ? b.attention.filter(it => { const p = it.flag?.path ?? it.labRel ?? it.rel; return !p || p.startsWith(state.sel) || state.sel.startsWith(p); }) : b.attention;
+    nextHTML = `
+      ${!mobile && !state.sel ? deskSwitchHTML() : ''}
+      ${inspectorHTML()}
+      <div class="sec">
+        <div class="sec-h">
+          <span class="sec-t">Needs you</span>
+          ${att.length?`<span class="sec-n hot">${att.length}</span>`:''}
+          <span class="sec-r">${state.sel && att.length!==b.attention.length?`<button class="tlink" onclick="select(null)">Show all (${b.attention.length})</button>`:''}</span>
+        </div>
+        ${attentionHTML(att)}
+      </div>
+      ${state.sel ? '' : blocksHTML(b.blocks)}
+      <div class="sec">
+        <div class="sec-h">
+          <span class="sec-t">Current focus</span>
+          ${b.pins.length?`<span class="sec-n">${b.pins.length}</span>`:`<span class="quiet" style="padding:0">None</span>`}
+          <span class="sec-r"><button class="tlink" onclick="copyContext()">Copy for agent</button></span>
+        </div>
+        ${b.pins.length?`<div class="focus-bar">${b.pins.map(p=>`<div class="pin-chip" data-reveal="${esc(p.path)}"><span class="dot violet"></span><span class="pn">${esc(p.path)}</span><button class="px" onclick="event.stopPropagation();togglePin('${esc(p.path)}')">×</button></div>`).join('')}</div>`:''}
+      </div>
+      ${state.sel ? '' : `<div class="sec">
+        <div class="sec-h">
+          <span class="sec-t">Projects</span>
+          <span class="sec-r"><button class="tlink ${state.showLog?'on':''}" onclick="state.showLog=!state.showLog;loadBoard().then(renderLeft)">${state.showLog?'Hide log':'Log'}</button></span>
+        </div>
+        ${standingsHTML(b.standings, b.blocks)}
+      </div>`}
+      ${(state.showLog || state.sel) && b.activity?.length ? `<div class="sec"><div class="sec-h"><span class="sec-t">${state.sel?'History':'Recent log'}</span></div>${logHTML(b.activity)}</div>` : ''}
+    `;
+  }
+
+  if (nextHTML === state.lastLeftHTML && sameView) return;
+  state.lastLeftHTML = nextHTML;
+  state.lastHopperBodyHTML = isHopperView ? hopperBodyHTML() : '';
+  state.lastLeftSel = state.sel;
+  state.lastTab = activeMode;
+  leftEl.innerHTML = nextHTML;
+  if (sameView) {
+    leftEl.scrollTop = keepLeftScroll;
+    const prev = $('.preview');
+    if (prev && keepPreviewScroll) prev.scrollTop = keepPreviewScroll;
+  } else {
+    leftEl.scrollTop = 0;
+  }
+  if (keepNote && $('#flagNote')) $('#flagNote').value = keepNote;
+  if (keepQuickNote && $('#quickNoteInput')) $('#quickNoteInput').value = keepQuickNote;
+  if (keepHopperDrop && $('#hopperDropInput')) { $('#hopperDropInput').value = keepHopperDrop; autoGrow($('#hopperDropInput'), 220); }
+  for (const [sid, val] of keepSteers.entries()) {
+    const el = document.querySelector(`.h-steer-in[data-steer-id="${CSS.escape(sid)}"]`);
+    if (el) { el.value = val; autoGrow(el, 160); }
+  }
+  $('#flagNote')?.addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submitFlag(); } if (e.key==='Escape'){ state.flagging=null; renderLeft(true); } });
+  $('#quickNoteInput')?.addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); postQuickNote(); } });
+  const hDrop = $('#hopperDropInput');
+  if (hDrop) {
+    hDrop.addEventListener('input', () => autoGrow(hDrop, 220));
+    hDrop.addEventListener('keydown', e => { if (!isPhone() && e.key==='Enter' && !e.shiftKey){ e.preventDefault(); hopperDrop($('#hopperDropSend')); } });
+    autoGrow(hDrop, 220);
+  }
+  wireHopperSteers(leftEl);
+}
+function wireHopperSteers(root){
+  root.querySelectorAll('.h-steer-in[data-steer-id]').forEach((el) => {
+    el.addEventListener('input', () => autoGrow(el, 160));
+    el.addEventListener('blur', () => { if (state.deferRender) setTimeout(() => { if (!document.activeElement?.classList?.contains('h-steer-in')) renderLeft(true); }, 120); });
+    el.addEventListener('keydown', (e) => { if (!isPhone() && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); hopperSteer(el.dataset.steerId); } });
+    autoGrow(el, 160);
+  });
+  root.querySelectorAll('.h-ci-note[data-ci-note]').forEach((el) => {
+    el.addEventListener('input', () => { el.dataset.dirty = '1'; autoGrow(el, 140); });
+    el.addEventListener('blur', () => {
+      if (el.dataset.dirty === '1') {
+        hopperSaveCheckinNote(el.dataset.ciNote, el.value);
+      } else if (state.deferRender) {
+        setTimeout(() => { if (!document.activeElement?.classList?.contains('h-ci-note')) renderLeft(true); }, 120);
+      }
+    });
+    el.addEventListener('keydown', (e) => {
+      if (!isPhone() && e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        el.blur();
+      }
+    });
+    autoGrow(el, 140);
+  });
+}
+$('#left').addEventListener('click', e => { const r = e.target.closest('[data-reveal]'); if (r && !e.target.closest('.px')) reveal(r.dataset.reveal); });
+
+// ---------- actions (every tap answers visibly) ----------
+async function togglePin(p, btn){
+  const pinned = state.board.pins.some(x=>x.path===p);
+  await runBtnAction('pin:' + p, btn, {
+    busyText: pinned ? 'Unpinning…' : 'Pinning…',
+    doneText: pinned ? 'Removed from focus' : 'Pinned to focus',
+    run: () => api(pinned ? '/api/unpin' : '/api/pin', { path: p }),
+  });
+}
+async function submitFlag(btn){
+  const note = $('#flagNote')?.value.trim() || '';
+  const target = state.flagging.for || 'antigravity';
+  const send = target === 'antigravity' && state.board.agy;
+  await runBtnAction('submitFlag', btn, {
+    busyText: send ? 'Sending…' : 'Flagging…',
+    doneText: send ? 'Dispatched' : `Flagged for ${cap(target)}`,
+    run: async () => {
+      await api('/api/flag', { path: state.sel, note, tag: state.flagging.tag, for: target, send });
+      state.flagging = null;
+    },
+  });
+}
+async function quickFlag(p, note, tag, target='antigravity', send=true, btn){
+  const doSend = send && target==='antigravity' && state.board.agy;
+  await runBtnAction('qflag:' + p + ':' + target, btn, {
+    busyText: doSend ? 'Sending…' : 'Flagging…',
+    doneText: doSend ? 'Dispatched' : `Flagged for ${cap(target)}`,
+    run: () => api('/api/flag', { path: p, note, tag, for: target, send: doSend }),
+  });
+}
+async function checkUpdate(labRel, title, target, btn){
+  const note = `Review pending update to ${title} (${labRel}) before moving to core — check for regressions, leaks, or anything I should know.`;
+  const doSend = target==='antigravity' && state.board.agy;
+  await runBtnAction('check:' + labRel + ':' + target, btn, {
+    busyText: doSend ? 'Sending…' : 'Asking…',
+    doneText: doSend ? 'Dispatched' : `Asked ${cap(target)}`,
+    run: () => api('/api/flag', { path: labRel, note, tag: 'Review', for: target, send: doSend }),
+  });
+}
+async function routeFlag(id, target, send, btn){
+  await runBtnAction('route:' + id + ':' + target, btn, {
+    busyText: send ? 'Sending…' : 'Routing…',
+    doneText: send ? 'Dispatched' : `Handed to ${cap(target)}`,
+    run: () => api('/api/flag/assign', { id, for: target, send }),
+  });
+}
+async function doneFlag(id, btn){
+  await runBtnAction('done:' + id, btn, {
+    busyText: 'Closing…',
+    doneText: 'Closed',
+    run: () => api('/api/flag/done', { id }),
+  });
+}
+async function promote(name, btn){
+  await runBtnAction('promote:' + name, btn, {
+    busyText: 'Moving to core…',
+    doneText: `Moved ${name} to core`,
+    run: () => api('/api/promote', { name }),
+  });
+}
+async function dismissPromote(name, head, btn){
+  await runBtnAction('dismiss:' + name, btn, {
+    busyText: 'Snoozing…',
+    doneText: 'Snoozed until next change',
+    run: () => api('/api/promote/dismiss', { name, head }),
+  });
+}
+async function postQuickNote(btn){
+  const input = $('#quickNoteInput');
+  const text = input?.value.trim() || '';
+  if (!text) { toast('Type a note first', 'err'); return; }
+  await runBtnAction('quickNote', btn, {
+    busyText: 'Saving…',
+    doneText: 'Saved',
+    run: async () => {
+      await api('/api/note', { path: '', text });
+      if (input) input.value = '';
+    },
+  });
+}
+
+// ---------- Hopper actions ----------
+async function hopperDrop(btn){
+  const input = $('#hopperDropInput');
+  const sendBtn = btn || $('#hopperDropSend');
+  const drop = input?.value.trim() || '';
+  if (!drop) { toast('Drop a 1-line idea first', 'err'); return; }
+  const hint = state.dropHint || '';
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.classList.add('is-busy'); sendBtn.innerHTML = `<span class="spin"></span>`; }
+  try {
+    await api('/api/hopper/add', { drop, from: 'you', hint });
+    if (input) { input.value = ''; autoGrow(input, 220); }
+    state.dropHint = '';
+    document.querySelectorAll('#hopperHintChips .h-hint-chip').forEach((el) => el.classList.remove('on'));
+    toast('Dropped into Hopper', 'ok');
+    if (sendBtn) { sendBtn.classList.remove('is-busy'); sendBtn.classList.add('is-done'); sendBtn.textContent = '✓ Sent'; }
+    await loadHopper();
+    renderLeft();
+    setTimeout(() => {
+      if (sendBtn && sendBtn.isConnected) {
+        sendBtn.classList.remove('is-done');
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
+      }
+    }, 800);
+  } catch {
+    if (sendBtn && sendBtn.isConnected) {
+      sendBtn.classList.remove('is-busy');
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'Send';
+    }
+  }
+}
+
+async function hopperSteer(id, btn){
+  const input = document.querySelector(`.h-steer-in[data-steer-id="${CSS.escape(id)}"]`);
+  const brief = input?.value.trim() || '';
+  if (!brief) { toast('Type a 1-line steer first', 'err'); return; }
+  await runBtnAction('hsteer:' + id, btn, {
+    busyText: 'Saving…',
+    doneText: 'Steer saved for next shot',
+    run: async () => {
+      await api('/api/hopper/steer', { id, brief });
+      if (input) { input.value = ''; autoGrow(input, 160); input.blur(); }
+      state.deferRender = false;
+    },
+  });
+}
+
+function patchLocalCardCheckin(id, checkin){
+  const c = (state.hopper?.bench || []).find((x) => x.id === id);
+  if (c && checkin) c.checkin = checkin;
+}
+
+async function hopperCheckinPulse(id, pulse){
+  const card = (state.hopper?.bench || []).find((x) => x.id === id);
+  const nextPulse = card?.checkin?.pulse === pulse ? '' : pulse;
+  const stEl = document.querySelector(`[data-ci-status="${CSS.escape(id)}"]`);
+  if (stEl) stEl.textContent = 'Saving…';
+  try {
+    const res = await api('/api/hopper/checkin', { id, pulse: nextPulse });
+    patchLocalCardCheckin(id, res.checkin);
+    renderLeft(true);
+  } catch {
+    if (stEl) stEl.textContent = 'Retry tap';
+  }
+}
+
+async function hopperCheckinAnswer(id, qid, val){
+  const card = (state.hopper?.bench || []).find((x) => x.id === id);
+  const cur = card?.checkin?.answers?.[qid] || '';
+  const nextVal = cur === val ? '' : val;
+  const stEl = document.querySelector(`[data-ci-status="${CSS.escape(id)}"]`);
+  if (stEl) stEl.textContent = 'Saving…';
+  try {
+    const res = await api('/api/hopper/checkin', { id, answers: { [qid]: nextVal } });
+    patchLocalCardCheckin(id, res.checkin);
+    renderLeft(true);
+  } catch {
+    if (stEl) stEl.textContent = 'Retry tap';
+  }
+}
+
+async function hopperSaveCheckinNote(id, noteVal){
+  const el = document.querySelector(`.h-ci-note[data-ci-note="${CSS.escape(id)}"]`);
+  const stEl = document.querySelector(`[data-ci-status="${CSS.escape(id)}"]`);
+  if (stEl) stEl.textContent = 'Saving…';
+  try {
+    const res = await api('/api/hopper/checkin', { id, note: String(noteVal || '').trim() });
+    if (el) el.dataset.dirty = '0';
+    patchLocalCardCheckin(id, res.checkin);
+    if (stEl) stEl.textContent = 'Saved ✓';
+    state.deferRender = false;
+  } catch {
+    if (stEl) stEl.textContent = 'Could not save';
+  }
+}
+
+async function hopperRemoveReaction(id, reactionId){
+  try {
+    const res = await api('/api/hopper/react', { id, removeId: reactionId });
+    patchLocalCardCheckin(id, res.checkin);
+    renderLeft(true);
+  } catch {}
+}
+
+async function hopperPush(id, btn){
+  const noteEl = document.querySelector(`.h-ci-note[data-ci-note="${CSS.escape(id)}"]`);
+  const note = noteEl ? noteEl.value.trim() : undefined;
+  await runBtnAction('hpush:' + id, btn, {
+    busyText: 'Queueing next shot…',
+    doneText: 'Queued next shot',
+    run: async () => {
+      await api('/api/hopper/push', { id, ...(note !== undefined ? { note } : {}) });
+    },
+  });
+}
+
+async function hopperChop(id, btn){
+  const noteEl = document.querySelector(`.h-ci-note[data-ci-note="${CSS.escape(id)}"]`);
+  await runBtnAction('hchop:' + id, btn, {
+    busyText: 'Opening Floor…',
+    doneText: `Opened #chop-${id} in Floor`,
+    run: async () => {
+      if (noteEl && noteEl.dataset.dirty === '1') {
+        await api('/api/hopper/checkin', { id, note: noteEl.value.trim() }).catch(() => {});
+        noteEl.dataset.dirty = '0';
+      }
+      const res = await api('/api/hopper/chop', { id });
+      const url = location.hostname.endsWith('.ts.net')
+        ? `https://${location.hostname}:7960/`
+        : (res.floorUrl || 'http://127.0.0.1:7960/');
+      try { window.open(url, '_blank', 'noopener'); } catch {}
+    },
+  });
+}
+
+async function hopperRunNow(id, btn){
+  await runBtnAction('hrunnow:' + id, btn, {
+    busyText: 'Prioritizing…',
+    doneText: `${id} marked Run Now`,
+    run: () => api('/api/hopper/run-now', { id }),
+  });
+}
+
+async function hopperPark(id, btn){
+  await runBtnAction('hpark:' + id, btn, {
+    busyText: 'Parking…',
+    doneText: `Parked ${id}`,
+    run: () => api('/api/hopper/park', { id, why: 'Parked from Foundry phone' }),
+  });
+}
+
+async function hopperClearQueued(id, btn){
+  await runBtnAction('hclear:' + id, btn, {
+    busyText: 'Clearing…',
+    doneText: `Cleared ${id}`,
+    run: () => api('/api/hopper/nuke', { id, why: 'Cleared from queue', reopen: 'Whenever dropped again' }),
+  });
+}
+
+function openPlaybookEditor(){
+  const pb = state.hopper?.playbook || { items: [], note: '' };
+  state.playbookDraft = {
+    items: (pb.items || []).map((it) => ({ title: it.title || '', body: it.body || '' })),
+    note: pb.note || '',
+  };
+  if (!state.playbookDraft.items.length) state.playbookDraft.items.push({ title: '', body: '' });
+  state.playbookEditing = true;
+  renderLeft(true);
+}
+
+function syncPlaybookDraft(){
+  if (!state.playbookDraft) return;
+  const rows = [...document.querySelectorAll('#hPlaybookEditor .h-pb-edit-row')];
+  state.playbookDraft.items = rows.map((row) => ({
+    title: row.querySelector('[data-pb-title]')?.value ?? '',
+    body: row.querySelector('[data-pb-body]')?.value ?? '',
+  }));
+  const noteEl = $('#hPlaybookNoteIn');
+  if (noteEl) state.playbookDraft.note = noteEl.value;
+}
+
+function addPlaybookPoint(){
+  syncPlaybookDraft();
+  if (!state.playbookDraft) return;
+  state.playbookDraft.items.push({ title: '', body: '' });
+  renderLeft(true);
+}
+
+function removePlaybookPoint(idx){
+  syncPlaybookDraft();
+  if (!state.playbookDraft || state.playbookDraft.items.length <= 1) return;
+  state.playbookDraft.items.splice(idx, 1);
+  renderLeft(true);
+}
+
+function cancelPlaybookEditor(){
+  state.playbookEditing = false;
+  state.playbookDraft = null;
+  renderLeft(true);
+}
+
+async function savePlaybook(btn){
+  syncPlaybookDraft();
+  const draft = state.playbookDraft;
+  if (!draft) return;
+  const items = (draft.items || [])
+    .map((it) => ({ title: String(it.title || '').trim(), body: String(it.body || '').trim() }))
+    .filter((it) => it.title || it.body);
+  if (!items.length) { toast('Keep at least one framework point', 'err'); return; }
+  await runBtnAction('hplaybook', btn, {
+    busyText: 'Saving…',
+    doneText: 'Framework saved',
+    run: async () => {
+      const res = await api('/api/hopper/playbook', { items, note: String(draft.note || '').trim() });
+      state.playbookEditing = false;
+      state.playbookDraft = null;
+      if (state.hopper && res?.playbook) state.hopper.playbook = res.playbook;
+      renderLeft(true);
+    },
+  });
+}
+
+function closeHopperModal(){
+  state.hopperModal = null;
+  $('#hopperModal').classList.remove('open');
+}
+
+async function hopperPull(id, defaultBuild, btn){
+  if (defaultBuild) {
+    await runBtnAction('hpull:' + id, btn, {
+      busyText: 'Pulling…',
+      doneText: `Pulled ${id} into lab trial`,
+      run: () => api('/api/hopper/pull', { id, build: defaultBuild }),
+    });
+    return;
+  }
+  state.hopperModal = { kind: 'pull', id };
+  $('#hmKicker').textContent = 'Pull to Lab';
+  $('#hmKicker').style.color = 'var(--green)';
+  $('#hmCard').style.borderColor = '#264f3c';
+  $('#hmTitle').textContent = `Pull ${id} into a lab trial`;
+  $('#hmBody').innerHTML = `<div class="h-field"><label for="hmBuild">Lab project name (e.g. homebase)</label><input id="hmBuild" type="text" placeholder="homebase" autocomplete="off"></div>`;
+  $('#hmActions').innerHTML = `<button class="btn ghost" onclick="closeHopperModal()">Cancel</button><button class="btn primary" id="hmGo" onclick="confirmHopperPull()">Pull to Lab</button>`;
+  $('#hopperModal').classList.add('open');
+  setTimeout(() => $('#hmBuild')?.focus(), 40);
+}
+async function confirmHopperPull(){
+  const m = state.hopperModal; if (!m) return;
+  const build = $('#hmBuild')?.value.trim() || '';
+  if (!build) { toast('Name the lab project first', 'err'); return; }
+  await runBtnAction('hpull:' + m.id, $('#hmGo'), {
+    busyText: 'Pulling…',
+    doneText: `Pulled ${m.id} to lab`,
+    run: async () => { await api('/api/hopper/pull', { id: m.id, build }); closeHopperModal(); },
+  });
+}
+
+function openHopperAgain(id){
+  const card = (state.hopper?.bench || []).find((c) => c.id === id);
+  state.hopperModal = { kind: 'again', id };
+  $('#hmKicker').textContent = 'One More Shot';
+  $('#hmKicker').style.color = 'var(--amber)';
+  $('#hmCard').style.borderColor = '#4f3a1c';
+  $('#hmTitle').textContent = `Give ${id} one more shot`;
+  $('#hmBody').innerHTML = `
+    ${card?.weakest ? `<div class="h-box weak" style="margin-bottom:12px"><div class="h-lbl">Current Weakest Spot</div><div class="h-val">${esc(card.weakest)}</div></div>` : ''}
+    <div class="h-field"><label for="hmBrief">Chop brief (optional — leave blank to aim at Weakest Spot)</label><input id="hmBrief" type="text" placeholder="Aim at weakest spot, or type a 1-line steer…" autocomplete="off"></div>`;
+  $('#hmActions').innerHTML = `<button class="btn ghost" onclick="closeHopperModal()">Cancel</button><button class="btn primary" id="hmGo" onclick="confirmHopperAgain()">Queue Shot</button>`;
+  $('#hopperModal').classList.add('open');
+  setTimeout(() => $('#hmBrief')?.focus(), 40);
+}
+async function confirmHopperAgain(){
+  const m = state.hopperModal; if (!m) return;
+  const brief = $('#hmBrief')?.value.trim() || '';
+  await runBtnAction('hagain:' + m.id, $('#hmGo'), {
+    busyText: 'Queueing…',
+    doneText: `${m.id} queued for one more shot`,
+    run: async () => { await api('/api/hopper/again', { id: m.id, brief, weakest: !brief }); closeHopperModal(); },
+  });
+}
+
+function openHopperNuke(id){
+  state.hopperModal = { kind: 'nuke', id };
+  $('#hmKicker').textContent = 'Scrap Build';
+  $('#hmKicker').style.color = 'var(--red)';
+  $('#hmCard').style.borderColor = '#54262a';
+  $('#hmTitle').textContent = `Scrap ${id}?`;
+  $('#hmBody').innerHTML = `
+    <p class="modal-body" style="margin-bottom:12px">Stops the live preview, clears its On Deck slot, and logs one quick line in the Graveyard so we remember why.</p>
+    <div class="h-field"><label for="hmWhy">Why scrap it?</label><input id="hmWhy" type="text" placeholder="e.g. Felt too busy / not the right direction" autocomplete="off"></div>
+    <div class="h-field"><label for="hmReopen">What would bring it back?</label><input id="hmReopen" type="text" value="If we revisit this with a cleaner angle" autocomplete="off"></div>`;
+  $('#hmActions').innerHTML = `<button class="btn ghost" onclick="closeHopperModal()">Cancel</button><button class="btn danger-solid" id="hmGo" onclick="confirmHopperNuke()">Scrap It</button>`;
+  $('#hopperModal').classList.add('open');
+  setTimeout(() => $('#hmWhy')?.focus(), 40);
+}
+async function confirmHopperNuke(){
+  const m = state.hopperModal; if (!m) return;
+  const why = $('#hmWhy')?.value.trim() || '';
+  const reopen = $('#hmReopen')?.value.trim() || '';
+  if (!why || !reopen) { toast('Fill in both why it died and what would reopen it', 'err'); return; }
+  await runBtnAction('hnuke:' + m.id, $('#hmGo'), {
+    busyText: 'Nuking…',
+    doneText: `Nuked ${m.id} — route & scratch dropped`,
+    run: async () => { await api('/api/hopper/nuke', { id: m.id, why, reopen }); closeHopperModal(); },
+  });
+}
+
+// Safe Roll back confirmation sheet
+function openRollbackConfirm(name){
+  state.pendingRollback = name;
+  $('#cmTitle').textContent = `Roll back core/${name}?`;
+  $('#cmBody').textContent = `This resets core/${name} back to its previous trusted version. Nothing in lab is lost.`;
+  const goBtn = $('#cmGo');
+  goBtn.disabled = false;
+  goBtn.className = 'btn danger-solid';
+  goBtn.textContent = 'Yes, roll back';
+  $('#confirmModal').classList.add('open');
+}
+function closeConfirm(){
+  state.pendingRollback = null;
+  $('#confirmModal').classList.remove('open');
+}
+async function confirmRollbackGo(){
+  const name = state.pendingRollback;
+  if (!name) return;
+  const goBtn = $('#cmGo');
+  await runBtnAction('rollback:' + name, goBtn, {
+    busyText: 'Rolling back…',
+    doneText: `Rolled core/${name} back`,
+    run: async () => {
+      await api('/api/rollback', { name });
+      closeConfirm();
+    },
+  });
+}
+
+async function copyContext(){
+  try { const r = await fetch('/api/context'); await navigator.clipboard.writeText(await r.text()); toast('Context copied', 'ok'); }
+  catch { toast('Could not copy to clipboard', 'err'); }
+}
+function copyPath(p){
+  const full = state.board.home + '\\' + p.split('/').join('\\');
+  navigator.clipboard.writeText(full).then(() => toast('Path copied', 'ok')).catch(() => toast(full, 'info'));
+}
+function copyHandoff(id){
+  const f = state.board.attention.find(i=>i.flag?.id===id)?.flag; if(!f) return;
+  const txt = `Flag ${f.id} (${cap(f.by)} → ${cap(f.for||'antigravity')}) on ${state.board.home}\\${f.path.replace(/\//g,'\\')} [${f.tag}]${f.note?`: "${f.note}"`:''}\nRead ${state.board.home}\\AGENTS.md first. Close with: foundry done ${f.id} "summary"`;
+  navigator.clipboard.writeText(txt).then(() => toast('Handoff copied', 'ok')).catch(() => toast('Could not copy', 'err'));
+}
+
+// ---------- usage pools ----------
+function barFillHTML(pct, c1, c2, cg){
+  const has = pct !== null && pct !== undefined;
+  const w = has ? Math.max(pct, 0) : 0;
+  const style = `--c1:${c1};--c2:${c2};--cg:${cg};width:${has ? (w > 0 ? w + '%' : '5px') : '5px'}`;
+  const cls = 'u-fill' + (has && w > 0 ? ' glow' : '') + (has ? '' : ' dim');
+  return `<div class="u-track"><div class="${cls}" style="${style}"></div></div>`;
+}
+async function loadUsage(){
+  state.usage = await get('/api/usage').catch(()=>null);
+  renderUsage();
+}
+async function refreshUsage(){
+  if (state.refreshingUsage) return;
+  state.refreshingUsage = true;
+  renderUsage();
+  if (isPhone()) renderLeft();
+  toast('Refreshing usage…', 'info');
+  try {
+    const res = await api('/api/usage/refresh', {});
+    if (res?.usage) state.usage = res.usage;
+    else await loadUsage();
+    toast(res?.ok === false ? ('AGY refresh: ' + (res.error || 'failed')) : 'Usage updated', res?.ok === false ? 'err' : 'ok');
+  } catch (e) {
+    toast('Usage refresh failed', 'err');
+  } finally {
+    state.refreshingUsage = false;
+    renderUsage();
+    if (isPhone()) renderLeft();
+  }
+}
+function renderUsage(){
+  const box = $('#usage'); if (!box) return;
+  box.innerHTML = usageSectionHTML(false);
+}
+
+// ---------- live ----------
+let refreshing = false, again = false;
+async function refreshAll(){
+  if (refreshing){ again = true; return; }
+  refreshing = true;
+  try{
+    // Update the visible board & focus FIRST so taps reflect on screen right away; refresh tree & usage in parallel.
+    const focusP = state.sel ? get('/api/focus?path='+encodeURIComponent(state.sel)).catch(()=>null) : Promise.resolve(null);
+    const boardP = loadBoard();
+    const hopperP = loadHopper();
+    const bgP = Promise.all([refreshTree(), loadUsage()]);
+    if (state.sel) {
+      state.focus = await focusP;
+      if (!state.focus){ state.sel=null; localStorage.removeItem('sel'); syncBodyClasses(); }
+    }
+    await Promise.all([boardP, hopperP]);
+    renderLeft();
+    await bgP;
+    if (isPhone() && state.tab === 'progress') renderLeft();
+  } finally { refreshing=false; if (again){ again=false; refreshAll(); } }
+}
+// The window keeps itself current (Nov 24, his ask: "I really would love the foundry window to update").
+// A new server (after a Move to core restarts it) reloads the page onto the new code; a line that dropped catches up
+// as soon as it's back; and the board refreshes whenever he looks at the window, and once a minute regardless.
+let bootSeen = null, lostLine = false;
+function connect(){
+  const es = new EventSource('/api/events');
+  es.onopen = () => { setLiveBadge(true); if (lostLine) { lostLine = false; refreshAll(); } };
+  es.onmessage = (e) => {
+    setLiveBadge(true);
+    const m = /^hello (\S+)/.exec(e.data || '');
+    if (m) {
+      if (bootSeen && bootSeen !== m[1]) { location.reload(); return; }
+      bootSeen = m[1];
+    }
+    refreshAll();
+  };
+  es.onerror = () => { setLiveBadge(false); lostLine = true; };
+}
+let lastLook = 0;
+function freshOnLook(){ if (document.hidden) return; const t = Date.now(); if (t - lastLook < 3000) return; lastLook = t; refreshAll(); }
+document.addEventListener('visibilitychange', freshOnLook);
+addEventListener('focus', freshOnLook);
+setInterval(() => { if (!document.hidden) refreshAll(); }, 60000);
+
+// ---------- resizable split (desktop) ----------
+(() => {
+  const saved = localStorage.getItem('treeW'); if (saved) document.documentElement.style.setProperty('--treeW', saved);
+  let drag = false;
+  $('#grip').addEventListener('mousedown', ()=>{ drag=true; document.body.style.cursor='col-resize'; });
+  addEventListener('mouseup', ()=>{ if(drag){ drag=false; document.body.style.cursor=''; localStorage.setItem('treeW', getComputedStyle(document.documentElement).getPropertyValue('--treeW')); } });
+  addEventListener('mousemove', e=>{ if(!drag) return; const w = Math.min(Math.max(innerWidth - e.clientX, 260), innerWidth-440); document.documentElement.style.setProperty('--treeW', w+'px'); });
+})();
+
+window.matchMedia('(max-width: 860px)').addEventListener('change', () => {
+  loadBoard().then(() => renderLeft(true));
+});
+$('#confirmModal').addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirm(); });
+$('#hopperModal').addEventListener('click', e => { if (e.target.id === 'hopperModal') closeHopperModal(); });
+$('#hopperLightbox').addEventListener('click', e => { if (e.target.id === 'hopperLightbox') closeHopperLightbox(); });
+addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    if ($('#hopperLightbox').classList.contains('open')) { closeHopperLightbox(); return; }
+    if ($('#hopperModal').classList.contains('open')) { closeHopperModal(); return; }
+    if ($('#confirmModal').classList.contains('open')) { closeConfirm(); return; }
+    if (state.sel && document.activeElement?.tagName!=='TEXTAREA') select(null);
+  }
+});
+
+(async () => {
+  syncBodyClasses();
+  $('#left').innerHTML = `<div class="glance"><div class="glance-ico"><span class="spin"></span></div><div class="glance-body"><div class="glance-title">Loading Foundry…</div><div class="glance-sub">Checking what needs you</div></div></div>`;
+  const boardTask = state.sel ? select(state.sel) : loadBoard().then(renderLeft);
+  await Promise.all([boardTask, loadHopper(), refreshTree(), loadUsage()]);
+  renderLeft();
+  connect();
+  setInterval(loadUsage, 30000);
+  setInterval(() => {
+    const ct = state.hopper?.caretaker || state.hopper?.watcher || {};
+    if (ct.armed || (ct.activeRuns && Object.keys(ct.activeRuns).length > 0)) {
+      loadHopper().then(() => renderLeft());
+    }
+  }, 15000);
+})();
+</script>
+</body>
+</html>

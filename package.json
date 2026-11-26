@@ -1,0 +1,12 @@
+{
+  "name": "the-foundry",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node app/server.mjs",
+    "foundry": "node app/foundry.mjs",
+    "check": "node scripts/check-setup.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}
