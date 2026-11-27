@@ -12,7 +12,7 @@ When you build fast with AI, pushing every save straight into the apps your pers
 - **Core (`core/<project>`)** — quiet daily apps that just work. A `Move to core` card appears on your person's board **only** when you write a plain-English case (`foundry propose <project> --why "..." --lived "..." --restarts "..." --by <your-name>`). The card locks to that exact tested commit, and your person clicks **Move to core**.
 - **Public (`public/<project>`)** — scrubbed copies ready to share with strangers when your person asks.
 
-## Setting it up in two minutes
+## Setting it up
 
 1. **Clone this repo beside your own folder (never inside another git repo):**
    - PowerShell: `git clone https://github.com/HunterBryson/the-foundry "$env:USERPROFILE\the-foundry"`

@@ -88,7 +88,7 @@
       case 'schedule':
         return `${proto}//${host}:7968/`;
       case 'den':
-        return isTailscale ? `${proto}//${host}:7950/` : `http://${host}:7930/`;
+        return `${proto}//${host}:7950/`;
       default:
         return `${origin}/`;
     }

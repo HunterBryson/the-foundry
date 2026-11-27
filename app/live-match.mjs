@@ -287,7 +287,7 @@ export async function runAfterMove(name, from, to, kind) {
     }
     const why = first.problems.join('; ').slice(0, 300);
     if (kind !== 'move' || !from) {
-      F.addFlag({ path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: 'hunter', note: `${name} did not come up right after a ${kind === 'move' ? 'first move' : 'roll back'}: ${why}` });
+      F.addFlag({ path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: CONFIG.human.id, note: `${name} did not come up right after a ${kind === 'move' ? 'first move' : 'roll back'}: ${why}` });
       await F.writeContextFile();
       return { ok: false, first };
     }
@@ -297,7 +297,7 @@ export async function runAfterMove(name, from, to, kind) {
     } catch (rbErr) {
       await F.addBlock({ name, commit: to, files: blockFiles, why, by: 'live-match' });
       F.addFlag({
-        path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: 'hunter',
+        path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: CONFIG.human.id,
         note: `URGENT: ${name} broke Live Match and automatic roll back failed (${rbErr.message.slice(0, 180)}). The broken version is blocked; core needs a look. Move failed on: ${why}`,
       });
       await F.writeContextFile();
@@ -308,7 +308,7 @@ export async function runAfterMove(name, from, to, kind) {
     await F.addBlock({ name, commit: to, files: blockFiles, why, by: 'live-match' });
     const held = !back || back.ok;
     F.addFlag({
-      path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: 'hunter',
+      path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: CONFIG.human.id,
       note: held
         ? `${name} was rolled back to the last good version and is running it. The move didn't take: ${why}`
         : `URGENT: ${name} was rolled back but is NOT running right: ${back.problems.join('; ').slice(0, 240)}. The move failed on: ${why}`,

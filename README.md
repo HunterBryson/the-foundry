@@ -2,7 +2,7 @@
 
 **One dark local workshop on PC and phone where your AI can build at full speed — without ever breaking what already worked yesterday.**
 
-A fast, pure-dark local home for all the projects you build with **Claude and Antigravity**. Plain folders and plain git underneath—zero GitHub PR clutter, zero cloud accounts, `$0` forever, and one-thumb control from your phone over private Tailscale.
+A fast, pure-dark local home for all the projects you build with **Claude**. Plain folders and plain git underneath—zero GitHub PR clutter, zero cloud accounts, and one-thumb control from your phone over private Tailscale. *(Antigravity support is being tested next.)*
 
 ![The Foundry on desktop: plain-English Move to core case on notes-app, isolated streak-heatmap trial bench pinned below, live subscription headroom bars, and clean lab vs core folders](docs/01-desktop-foundry-board.png)
 
@@ -15,16 +15,16 @@ In **three days**, we hit **66 moves to core**. My daily tools turned back into 
 
 ---
 
-## Start in two minutes — your AI handles everything
+## Setting it up — your AI handles everything
 
-You never wire up git worktrees by hand, edit config JSON, or memorize CLI flags. The Foundry ships with its own skill file so **Claude** and **Antigravity** already know how the whole workshop runs.
+You never wire up git worktrees by hand, edit config JSON, or memorize CLI flags. The Foundry ships with its own skill file so **Claude** already knows how the whole workshop runs.
 
 - **Already using [The shelves](https://github.com/HunterBryson/the-shelves)?** Just tell your AI: **"Set up The Foundry for us."**
-- **Starting standalone in Claude (Code tab) or Antigravity?** Paste this one sentence and press Enter:
+- **Starting standalone in Claude (Code tab)?** Paste this one sentence and press Enter:
 
 > Set up The Foundry for me from https://github.com/HunterBryson/the-foundry. Read its CLAUDE.md there first, configure `foundry.config.json` and my local `lab/` and `core/` folders, run `node scripts/check-setup.mjs`, and open the Foundry board for me.
 
-**That's it.** Your AI sets up the folder spine on your computer, installs the Foundry skill so it already knows how benches and promotions work, checks the local server, and opens The Foundry cleanly in your browser—with a quick walkthrough if you want it on your phone over private Tailscale too. *(Windows & macOS, Node 20+, zero npm install required.)*
+**That's it.** Your AI sets up the folder spine on your computer, installs the Foundry skill so it already knows how benches and promotions work, checks the local server, and opens The Foundry cleanly in your browser—with a quick walkthrough if you want it on your phone over private Tailscale too. *(Windows, Node 20+, zero npm install required. Core CLI & board run on macOS/Linux too; desktop window & Live Match helpers are Windows-only for now.)*
 
 ---
 
@@ -80,21 +80,21 @@ Checking on your builds from work or the couch shouldn't mean squinting at tiny 
   </tr>
 </table>
 
-- **Live subscription headroom — so rate limits never blindside you mid-build:** Getting cut off by a 5-hour cap halfway through an architecture pass is brutal. Optional usage bars on the right rail read your local **Claude** and **Antigravity** pool windows (`5h` and weekly tanks) so you always see how much fuel you have left before kicking off a big swing.
-- **Runs on the flat plans you already have:** Everything in The Foundry is plain local Node + git—**`$0` per action**, zero metered API keys required.
+- **Live subscription headroom — so rate limits never blindside you mid-build:** Getting cut off by a 5-hour cap halfway through an architecture pass is brutal. Optional usage bars on the right rail read your local **Claude** pool windows (`5h` and weekly tanks) so you always see how much fuel you have left before kicking off a big swing.
+- **Runs on the flat plan you already have:** Everything in The Foundry is plain local Node + git—running straight through the local AI tools you already have.
 
 ---
 
 <!-- FOUNDRY:FIT:START -->
 ## It all fits together
 
-Each build works on its own on **Claude or Antigravity**, and they all plug into each other the same way. Start with whichever one you want. When you set up another, your AI fits them together with `node tools/fit.mjs`, and the new one shows up where you already look.
+Each build works on its own with **Claude**, and they all connect into one local workshop. Homebase, The Glass, and The Den wire together automatically with `node tools/fit.mjs`; The Foundry connects to Homebase and Monty's Floor through `foundry.config.json` (automatic `fit.mjs` wiring is next).
 
 - **[The shelves](https://github.com/HunterBryson/the-shelves):** a starter memory folder for your AI to move into—what every room and build session saves back to so tomorrow starts caught up.
 - **[Homebase](https://github.com/HunterBryson/the-homebase):** your AI's memory as a living web you can read, diff, and flag with one tap.
 - **[The glass](https://github.com/HunterBryson/the-glass):** a see-through layer over your screen. Box anything, say what you want, and your AI answers right beside your mark.
 - **[The Den](https://github.com/HunterBryson/the-den):** a workspace table you and your AI share side by side—compare options and edit live instead of chat walls.
-- **[Monty's Floor](https://github.com/HunterBryson/monty-floor):** one dark interface uniting all your Claude and Antigravity agents for 1-on-1 DMs and live multi-AI rooms on desktop and phone.
+- **[Monty's Floor](https://github.com/HunterBryson/monty-floor):** one dark interface for 1-on-1 DMs and live multi-AI rooms on desktop and phone.
 - **[The Foundry](https://github.com/HunterBryson/the-foundry):** one dark local workshop (`Bench → Lab → Core → Public`) so your AIs can experiment at full speed without ever breaking your working apps.
 <!-- FOUNDRY:FIT:END -->
 
@@ -115,8 +115,8 @@ You never have to touch plumbing files or git hooks yourself. Just tell your AI:
 
 ## Quick answers
 
-**Does The Foundry cost anything or require API keys?**
-No. The Foundry is free forever (MIT license) and runs 100% locally on top of plain folders and git. Your **Claude** or **Antigravity** agents use the CLI subscriptions you already have—`$0` extra.
+**Does this need any extra accounts or API keys?**
+No. The Foundry is open source (MIT license) and runs 100% locally on top of plain folders and git, using the local **Claude** CLI subscription you already have.
 
 **Do I need multiple AIs or GitHub to use this?**
 Neither. It works great with **one** AI and **zero** GitHub accounts—everything lives in clean local git folders on your own computer (with optional private GitHub backup only if you ever ask for one).
@@ -140,4 +140,4 @@ Never. The Foundry binds strictly to `127.0.0.1` on your own machine (plus your 
 
 Open an issue and pick a form—your AI can even fill it in for you. Rather email? Write to hello@workbenchagents.com. Every issue and email reaches me, and I answer it myself, usually within a few days. Security problems go privately: see [SECURITY.md](https://github.com/HunterBryson/.github/blob/main/SECURITY.md).
 
-Works with **Claude and Antigravity**. MIT license.
+Works with **Claude** on Windows (Antigravity support in testing). MIT license.

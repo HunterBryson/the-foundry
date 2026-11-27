@@ -1,5 +1,6 @@
 // Runs Live Match on its own, detached from the Foundry window, so the window can be restarted and still get checked.
 import { runAfterMove } from './live-match.mjs';
+import { CONFIG } from './config.mjs';
 import * as F from './lib.mjs';
 
 const [, , name, from, to, kind] = process.argv;
@@ -8,7 +9,7 @@ try {
   process.exit(r.ok ? 0 : 1);
 } catch (e) {
   try {
-    F.addFlag({ path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: 'hunter', note: `Live Match itself failed on ${name}, so what's running is unchecked: ${e.message}`.slice(0, 400) });
+    F.addFlag({ path: `core/${name}`, tag: 'Live Match', by: 'live-match', for: CONFIG.human.id, note: `Live Match itself failed on ${name}, so what's running is unchecked: ${e.message}`.slice(0, 400) });
     await F.writeContextFile();
   } catch {}
   process.exit(2);

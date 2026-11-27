@@ -12,6 +12,7 @@ export const FOUNDRY = CONFIG.home;
 export const BOARD = path.join(FOUNDRY, '.foundry');
 export const FLAGS_DIR = path.join(BOARD, 'flags');
 export const TRIALS_DIR = path.join(BOARD, 'trials');
+export const HOOKS_DIR = () => path.join(BOARD, 'hooks');
 export const HIDDEN = new Set(['.git', 'node_modules', '.foundry', '__pycache__', '.venv']);
 
 const DEFAULT_CONFIG = { pairs: CONFIG.pairs || {} };
@@ -1098,7 +1099,9 @@ exit 0
 `;
 export async function signInstall(by = 'builder') {
   fs.mkdirSync(HOOKS_DIR(), { recursive: true });
-  fs.writeFileSync(path.join(HOOKS_DIR(), 'pre-commit'), SIGN_HOOK.replace(/\r\n/g, '\n'));
+  const hookPath = path.join(HOOKS_DIR(), 'pre-commit');
+  fs.writeFileSync(hookPath, SIGN_HOOK.replace(/\r\n/g, '\n'));
+  try { fs.chmodSync(hookPath, 0o755); } catch {}
   const done = [];
   for (const r of listRepos().filter((x) => x.room === 'lab')) {
     const abs = toAbs(r.rel);

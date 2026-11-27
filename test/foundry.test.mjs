@@ -34,6 +34,7 @@ test('Zero-leak privacy & voice guardrail audit across entire repo', () => {
     [/\bpartner(s|ship)?\b/i, 'creepy partner wording'],
     [/\b(Odie|Juno|Rivet|Billy)\b/i, 'internal family agent name'],
     [/Built by Hunter/i, 'third-person sign-off'],
+    [/for:\s*['"]hunter['"]/i, 'hardcoded hunter flag recipient'],
   ];
 
   const walk = (dir) => {
@@ -57,7 +58,7 @@ test('Zero-leak privacy & voice guardrail audit across entire repo', () => {
   }
 
   const readme = fs.readFileSync(path.join(REPO_ROOT, 'README.md'), 'utf8');
-  assert.ok(readme.trim().endsWith('Works with **Claude and Antigravity**. MIT license.'), 'README must close with clean locked sign-off');
+  assert.ok(readme.trim().endsWith('Works with **Claude** on Windows (Antigravity support in testing). MIT license.'), 'README must close with clean locked sign-off');
 });
 
 test('Bench -> Lab -> Propose -> Move to core -> Roll back spine', () => {
@@ -117,6 +118,13 @@ test('Bench -> Lab -> Propose -> Move to core -> Roll back spine', () => {
     const rb = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', rbScript], { cwd: REPO_ROOT, env, encoding: 'utf8', windowsHide: true }).trim());
     assert.equal(rb.to, v1Sha);
     assert.equal(git(path.join(tmp, 'core', 'notes-app'), 'rev-parse', 'HEAD'), v1Sha, 'Roll back restored exact previous Core version');
+
+    // 6. Verify foundry sign install & sign check work cleanly (regression check for HOOKS_DIR)
+    const signRes = JSON.parse(run(['sign', 'install', '--by', 'builder']));
+    assert.equal(signRes.length, 1);
+    assert.equal(signRes[0].ok, true);
+    const signChk = JSON.parse(run(['sign']));
+    assert.equal(signChk[0].asks, true);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

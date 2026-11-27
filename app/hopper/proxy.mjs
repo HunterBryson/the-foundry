@@ -351,7 +351,7 @@ export function handleLiveUpgrade(req, socket, head) {
   return true;
 }
 
-// Cleanly stop any running scratch process owned by a card when Hunter taps Nuke It.
+// Cleanly stop any running scratch process owned by a card when you tap Nuke It.
 export async function cleanupCardLive(card) {
   const stopped = [];
   if (!card) return { stopped };

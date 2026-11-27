@@ -433,13 +433,27 @@ async function openChopRoom(id) {
     ...(checkinSummary ? ['', 'Check-In:', checkinSummary] : []),
   ].join('\n');
 
+  // Match configured Foundry crew IDs against Floor's live enabled agents so default configs pair cleanly.
+  let members = CONFIG.crew.slice(0, 3).map((c) => c.id);
+  try {
+    const ar = await fetch(`${floorBase}/api/agents`, { signal: AbortSignal.timeout(3000) });
+    if (ar.ok) {
+      const ad = await ar.json();
+      const enabled = (ad.agents || []).filter((a) => !a.disabled).map((a) => a.id);
+      if (enabled.length) {
+        const matched = members.filter((id) => enabled.includes(id));
+        members = matched.length ? matched : enabled.slice(0, 3);
+      }
+    }
+  } catch {}
+
   const r = await fetch(`${floorBase}/api/channels`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       kind: 'room',
       name: roomName,
-      members: CONFIG.crew.slice(0, 3).map((c) => c.id),
+      members,
       openingText,
       frameWithFramer: false,
     }),
